@@ -17,6 +17,7 @@ struct AppRootView: View {
                     .tag(tab)
                     .tabItem {
                         Image(systemName: tab.iconName)
+                        Text(tab.title)
                     }
                     .accessibilityLabel(tab.title)
             }

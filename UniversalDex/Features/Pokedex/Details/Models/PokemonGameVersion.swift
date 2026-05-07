@@ -36,6 +36,45 @@ struct PokemonGameVersion: Hashable, Identifiable {
     var pokeAPIVersionNames: Set<String> {
         [id]
     }
+
+    var pokeAPIVersionGroupNames: Set<String> {
+        switch id {
+        case "red", "blue":
+            return ["red-blue"]
+        case "gold", "silver":
+            return ["gold-silver"]
+        case "ruby", "sapphire":
+            return ["ruby-sapphire"]
+        case "firered", "leafgreen":
+            return ["firered-leafgreen"]
+        case "diamond", "pearl":
+            return ["diamond-pearl"]
+        case "heartgold", "soulsilver":
+            return ["heartgold-soulsilver"]
+        case "black", "white":
+            return ["black-white"]
+        case "black-2", "white-2":
+            return ["black-2-white-2"]
+        case "x", "y":
+            return ["x-y"]
+        case "omega-ruby", "alpha-sapphire":
+            return ["omega-ruby-alpha-sapphire"]
+        case "sun", "moon":
+            return ["sun-moon"]
+        case "ultra-sun", "ultra-moon":
+            return ["ultra-sun-ultra-moon"]
+        case "lets-go-pikachu", "lets-go-eevee":
+            return ["lets-go-pikachu-lets-go-eevee"]
+        case "sword", "shield":
+            return ["sword-shield"]
+        case "brilliant-diamond", "shining-pearl":
+            return ["brilliant-diamond-and-shining-pearl"]
+        case "scarlet", "violet":
+            return ["scarlet-violet"]
+        default:
+            return [id]
+        }
+    }
 }
 
 extension PokemonGameVersion {

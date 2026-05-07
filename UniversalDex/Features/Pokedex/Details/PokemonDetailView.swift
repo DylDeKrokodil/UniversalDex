@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct PokemonDetailView: View {
+    @State private var selectedEvolution: PokemonListItem?
+    @State private var selectedTab = PokemonDetailTab.info
     @StateObject private var viewModel: PokemonDetailViewModel
 
     init(pokemon: PokemonListItem) {
@@ -36,6 +38,9 @@ struct PokemonDetailView: View {
                 gameMenu
             }
         }
+        .navigationDestination(item: $selectedEvolution) { pokemon in
+            PokemonDetailView(pokemon: pokemon)
+        }
         .task {
             await viewModel.loadDetailIfNeeded()
         }
@@ -44,6 +49,43 @@ struct PokemonDetailView: View {
     private func detailContent(_ detail: PokeAPIPokemonDetail) -> some View {
         VStack(spacing: 16) {
             hero(detail)
+
+            detailTabs
+
+            switch selectedTab {
+            case .info:
+                infoContent(detail)
+            case .evolutions:
+                evolutionsContent
+            case .catch:
+                catchContent
+            case .moves:
+                movesContent
+            }
+        }
+    }
+
+    private var detailTabs: some View {
+        Picker("Detail Tab", selection: $selectedTab) {
+            ForEach(PokemonDetailTab.allCases) { tab in
+                Label(tab.title, systemImage: tab.systemImage)
+                    .tag(tab)
+            }
+        }
+        .pickerStyle(.segmented)
+    }
+
+    @ViewBuilder
+    private func infoContent(_ detail: PokeAPIPokemonDetail) -> some View {
+        Group {
+            if let pokedexEntry = viewModel.selectedPokedexEntry {
+                detailSection("Pokedex Entry") {
+                    Text(pokedexEntry)
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
 
             if let selectedGame = viewModel.selectedGame {
                 detailSection("Selected Game") {
@@ -86,6 +128,162 @@ struct PokemonDetailView: View {
                 }
             }
         }
+    }
+
+    private var evolutionsContent: some View {
+        detailSection("Evolutions") {
+            let stages = viewModel.evolutionStages
+
+            if stages.isEmpty {
+                Text("Evolution data is not available yet.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            } else {
+                VStack(spacing: 12) {
+                    ForEach(Array(stages.enumerated()), id: \.element.id) { index, stage in
+                        if index > 0 {
+                            HStack(spacing: 8) {
+                                Image(systemName: "arrow.down")
+                                Text(stage.triggerText ?? "Evolves")
+                            }
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                        }
+
+                        evolutionStageRow(stage)
+                    }
+                }
+            }
+        }
+    }
+
+    private var catchContent: some View {
+        detailSection("Catch") {
+            let locations = viewModel.selectedEncounterLocations
+
+            if locations.isEmpty {
+                Text("No catch locations found for \(viewModel.selectedGameDisplayName).")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            } else {
+                VStack(spacing: 12) {
+                    ForEach(locations.prefix(20)) { location in
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text(location.name)
+                                    .font(.subheadline.weight(.semibold))
+
+                                Spacer()
+
+                                Text("\(location.maxChance)%")
+                                    .font(.caption.weight(.bold))
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            tagFlow(location.methods.prefix(4).map { method in
+                                "\(method.method) \(method.levelRange)"
+                            })
+                        }
+                        .padding(.vertical, 4)
+                    }
+
+                    if locations.count > 20 {
+                        Text("+ \(locations.count - 20) more locations")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+    }
+
+    private var movesContent: some View {
+        detailSection("Moves") {
+            let moves = viewModel.selectedMoves
+
+            if moves.isEmpty {
+                Text("No moves found for \(viewModel.selectedGameDisplayName).")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            } else {
+                VStack(spacing: 10) {
+                    ForEach(moves) { move in
+                        HStack(spacing: 12) {
+                            Text(move.level > 0 ? "Lv. \(move.level)" : move.learnMethod)
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(.secondary)
+                                .frame(width: 88, alignment: .leading)
+
+                            Text(move.name)
+                                .font(.subheadline.weight(.semibold))
+
+                            Spacer()
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func evolutionStageRow(_ stage: PokemonEvolutionStage) -> some View {
+        if let pokemon = stage.pokemon {
+            Button {
+                selectedEvolution = pokemon
+            } label: {
+                evolutionStageRowContent(stage)
+            }
+            .buttonStyle(.plain)
+        } else {
+            evolutionStageRowContent(stage)
+        }
+    }
+
+    private func evolutionStageRowContent(_ stage: PokemonEvolutionStage) -> some View {
+        HStack(spacing: 12) {
+            AsyncImage(url: stage.pokemon?.artworkURL) { phase in
+                switch phase {
+                case .empty:
+                    ProgressView()
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFit()
+                case .failure:
+                    Image(systemName: "questionmark.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
+                @unknown default:
+                    EmptyView()
+                }
+            }
+            .frame(width: 64, height: 64)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(stage.name)
+                    .font(.headline)
+
+                if let number = stage.pokemon?.formattedNumber {
+                    Text(number)
+                        .font(.caption.weight(.bold))
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Spacer()
+
+            if stage.pokemon != nil {
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(10)
+        .contentShape(Rectangle())
+        .background(AppTheme.screenBackground, in: RoundedRectangle(cornerRadius: 8))
     }
 
     private func hero(_ detail: PokeAPIPokemonDetail) -> some View {
@@ -212,6 +410,43 @@ private extension String {
         split(separator: "-")
             .map { $0.capitalized }
             .joined(separator: " ")
+    }
+}
+
+private enum PokemonDetailTab: String, CaseIterable, Identifiable {
+    case info
+    case evolutions
+    case `catch`
+    case moves
+
+    var id: String {
+        rawValue
+    }
+
+    var title: String {
+        switch self {
+        case .info:
+            return "Info"
+        case .evolutions:
+            return "Evolutions"
+        case .catch:
+            return "Catch"
+        case .moves:
+            return "Moves"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .info:
+            return "info.circle"
+        case .evolutions:
+            return "arrow.triangle.branch"
+        case .catch:
+            return "mappin.and.ellipse"
+        case .moves:
+            return "bolt"
+        }
     }
 }
 

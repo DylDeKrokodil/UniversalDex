@@ -25,3 +25,7 @@ struct PokeAPINamedResource: Codable, Hashable {
             .joined(separator: " ")
     }
 }
+
+struct PokeAPIResource: Codable, Hashable {
+    let url: URL
+}

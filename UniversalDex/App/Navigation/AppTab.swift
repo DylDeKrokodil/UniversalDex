@@ -9,6 +9,7 @@ import SwiftUI
 
 enum AppTab: CaseIterable, Hashable, Identifiable {
     case pokedex
+    case map
     case shiny
     case settings
 
@@ -20,6 +21,8 @@ enum AppTab: CaseIterable, Hashable, Identifiable {
         switch self {
         case .pokedex:
             return "Pokedex"
+        case .map:
+            return "Map"
         case .shiny:
             return "Shiny"
         case .settings:
@@ -31,6 +34,8 @@ enum AppTab: CaseIterable, Hashable, Identifiable {
         switch self {
         case .pokedex:
             return "/pokedex"
+        case .map:
+            return "/map"
         case .shiny:
             return "/shiny"
         case .settings:
@@ -42,6 +47,8 @@ enum AppTab: CaseIterable, Hashable, Identifiable {
         switch self {
         case .pokedex:
             return "book.pages.fill"
+        case .map:
+            return "map.fill"
         case .shiny:
             return "sparkles"
         case .settings:
@@ -54,6 +61,8 @@ enum AppTab: CaseIterable, Hashable, Identifiable {
         switch self {
         case .pokedex:
             PokedexView()
+        case .map:
+            MapView()
         case .shiny:
             ShinyView()
         case .settings:
