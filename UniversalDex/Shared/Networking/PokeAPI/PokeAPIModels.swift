@@ -14,7 +14,14 @@ struct PokeAPIPaginatedResponse<Resource: Codable>: Codable {
     let results: [Resource]
 }
 
-struct PokeAPINamedResource: Codable {
+struct PokeAPINamedResource: Codable, Hashable {
     let name: String
     let url: URL
+
+    var displayName: String {
+        name
+            .split(separator: "-")
+            .map { $0.capitalized }
+            .joined(separator: " ")
+    }
 }

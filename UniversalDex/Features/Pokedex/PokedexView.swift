@@ -42,10 +42,15 @@ struct PokedexView: View {
 
             LazyVGrid(columns: columns, spacing: 10) {
                 ForEach(viewModel.filteredPokemon) { pokemon in
-                    PokemonGridCard(pokemon: pokemon)
-                        .task {
-                            await viewModel.loadMoreIfNeeded(currentItem: pokemon)
-                        }
+                    NavigationLink {
+                        PokemonDetailView(pokemon: pokemon)
+                    } label: {
+                        PokemonGridCard(pokemon: pokemon)
+                    }
+                    .buttonStyle(.plain)
+                    .task {
+                        await viewModel.loadMoreIfNeeded(currentItem: pokemon)
+                    }
                 }
 
                 if viewModel.filteredPokemon.isEmpty && viewModel.isHydratingAllPokemon {

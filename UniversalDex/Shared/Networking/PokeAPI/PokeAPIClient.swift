@@ -68,6 +68,43 @@ struct PokeAPIClient {
 
         return decodedResponse
     }
+
+    func fetchPokemonDetail(
+        id: Int,
+        cachePolicy: APIResponseCachePolicy = .returnCacheDataElseLoad
+    ) async throws -> PokeAPIPokemonDetail {
+        let url = baseURL.appending(path: "pokemon/\(id)")
+        let cacheKey = "pokeapi:pokemon:detail:id=\(id)"
+        let requestLabel = "pokemon detail id=\(id)"
+
+        if cachePolicy == .returnCacheDataElseLoad {
+            if let cachedResponse: PokeAPIPokemonDetail = await responseCache.value(
+                forKey: cacheKey,
+                maxAge: Self.cacheMaxAge
+            ) {
+                AppDebugLog.log("PokeAPI cache hit: \(requestLabel)")
+                return cachedResponse
+            }
+
+            AppDebugLog.log("PokeAPI cache miss: \(requestLabel)")
+        } else {
+            AppDebugLog.log("PokeAPI cache bypass: \(requestLabel)")
+        }
+
+        AppDebugLog.log("PokeAPI request: \(url.absoluteString)")
+        let (data, response) = try await session.data(from: url)
+
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200..<300).contains(httpResponse.statusCode) else {
+            throw PokeAPIError.invalidResponse
+        }
+
+        let decodedResponse = try JSONDecoder().decode(PokeAPIPokemonDetail.self, from: data)
+        await responseCache.save(decodedResponse, forKey: cacheKey)
+        AppDebugLog.log("PokeAPI cached response: \(requestLabel)")
+
+        return decodedResponse
+    }
 }
 
 enum PokeAPIError: Error {
