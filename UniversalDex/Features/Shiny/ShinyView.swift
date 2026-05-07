@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  ShinyView.swift
 //  UniversalDex
 //
 //  Created by Dylan de Groot on 05/05/2026.
@@ -7,14 +7,14 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct ShinyView: View {
     var body: some View {
-        AppRootView()
+        RoutePlaceholderView(tab: .shiny)
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
+struct ShinyView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        ShinyView()
     }
 }

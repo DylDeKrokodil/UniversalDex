@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  PokedexView.swift
 //  UniversalDex
 //
 //  Created by Dylan de Groot on 05/05/2026.
@@ -7,14 +7,14 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct PokedexView: View {
     var body: some View {
-        AppRootView()
+        RoutePlaceholderView(tab: .pokedex)
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
+struct PokedexView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        PokedexView()
     }
 }
