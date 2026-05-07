@@ -11,4 +11,5 @@ enum AppTheme {
     static let accentColor = Color.red
     static let screenBackground = Color(.systemGroupedBackground)
     static let artworkBackground = Color(.secondarySystemGroupedBackground)
+    static let cardBackground = Color(.secondarySystemGroupedBackground)
 }

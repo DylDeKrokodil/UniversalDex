@@ -19,7 +19,7 @@ struct PokemonListItem: Identifiable, Hashable {
     }
 
     var formattedNumber: String {
-        "#\(String(format: "%04d", id))"
+        String(format: "%03d", id)
     }
 
     var artworkURL: URL? {

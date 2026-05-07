@@ -9,6 +9,10 @@ import SwiftUI
 
 struct PokedexView: View {
     @StateObject private var viewModel = PokedexViewModel()
+    private let columns = Array(
+        repeating: GridItem(.flexible(), spacing: 10),
+        count: 3
+    )
 
     var body: some View {
         NavigationStack {
@@ -30,40 +34,42 @@ struct PokedexView: View {
     }
 
     private var pokemonList: some View {
-        List {
-            ForEach(viewModel.pokemon) { pokemon in
-                PokemonListRow(pokemon: pokemon)
-                    .task {
-                        await viewModel.loadMoreIfNeeded(currentItem: pokemon)
-                    }
-            }
-
-            if viewModel.isLoadingPage {
-                HStack {
-                    Spacer()
-                    ProgressView()
-                    Spacer()
+        ScrollView {
+            LazyVGrid(columns: columns, spacing: 10) {
+                ForEach(viewModel.pokemon) { pokemon in
+                    PokemonGridCard(pokemon: pokemon)
+                        .task {
+                            await viewModel.loadMoreIfNeeded(currentItem: pokemon)
+                        }
                 }
-                .listRowSeparator(.hidden)
-            } else if let errorMessage = viewModel.errorMessage {
-                VStack(spacing: 8) {
-                    Text(errorMessage)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
 
-                    Button("Try Again") {
-                        Task {
-                            await viewModel.retry()
+                if viewModel.isLoadingPage {
+                    ProgressView()
+                        .gridCellColumns(3)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                } else if let errorMessage = viewModel.errorMessage {
+                    VStack(spacing: 8) {
+                        Text(errorMessage)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+
+                        Button("Try Again") {
+                            Task {
+                                await viewModel.retry()
+                            }
                         }
                     }
+                    .gridCellColumns(3)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .listRowSeparator(.hidden)
             }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
         }
-        .listStyle(.plain)
+        .background(AppTheme.screenBackground)
         .refreshable {
             await viewModel.reloadPokemon()
         }
