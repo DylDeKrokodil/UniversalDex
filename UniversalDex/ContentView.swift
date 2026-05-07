@@ -8,50 +8,115 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var selectedTab = AppTab.pokedex
+
     var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: [
-                    Color(red: 0.07, green: 0.10, blue: 0.18),
-                    Color(red: 0.10, green: 0.25, blue: 0.32),
-                    Color(red: 0.95, green: 0.29, blue: 0.20)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-
-            VStack(spacing: 28) {
-                Image(systemName: "sparkles")
-                    .font(.system(size: 64, weight: .semibold))
-                    .foregroundStyle(.yellow)
-                    .symbolEffect(.pulse)
-
-                VStack(spacing: 10) {
-                    Text("UniversalDex")
-                        .font(.largeTitle.weight(.bold))
-
-                    Text("Your creature companion starts here.")
-                        .font(.headline)
-                        .foregroundStyle(.white.opacity(0.82))
-                        .multilineTextAlignment(.center)
+        TabView(selection: $selectedTab) {
+            PokedexView()
+                .tag(AppTab.pokedex)
+                .tabItem {
+                    Image(systemName: AppTab.pokedex.iconName)
                 }
+                .accessibilityLabel(AppTab.pokedex.title)
 
-                Button {
-                } label: {
-                    Label("Open Dex", systemImage: "book.pages.fill")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
+            ShinyView()
+                .tag(AppTab.shiny)
+                .tabItem {
+                    Image(systemName: AppTab.shiny.iconName)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.yellow)
-                .foregroundStyle(.black)
-                .padding(.top, 12)
+                .accessibilityLabel(AppTab.shiny.title)
+
+            SettingsView()
+                .tag(AppTab.settings)
+                .tabItem {
+                    Image(systemName: AppTab.settings.iconName)
+                }
+                .accessibilityLabel(AppTab.settings.title)
+        }
+        .tint(.red)
+    }
+}
+
+private enum AppTab: Hashable {
+    case pokedex
+    case shiny
+    case settings
+
+    var title: String {
+        switch self {
+        case .pokedex:
+            return "Pokedex"
+        case .shiny:
+            return "Shiny"
+        case .settings:
+            return "Settings"
+        }
+    }
+
+    var iconName: String {
+        switch self {
+        case .pokedex:
+            return "book.pages.fill"
+        case .shiny:
+            return "sparkles"
+        case .settings:
+            return "gearshape.fill"
+        }
+    }
+}
+
+private struct PokedexView: View {
+    var body: some View {
+        RoutePlaceholderView(
+            title: "Pokedex",
+            path: "/pokedex",
+            iconName: AppTab.pokedex.iconName
+        )
+    }
+}
+
+private struct ShinyView: View {
+    var body: some View {
+        RoutePlaceholderView(
+            title: "Shiny",
+            path: "/shiny",
+            iconName: AppTab.shiny.iconName
+        )
+    }
+}
+
+private struct SettingsView: View {
+    var body: some View {
+        RoutePlaceholderView(
+            title: "Settings",
+            path: "/settings",
+            iconName: AppTab.settings.iconName
+        )
+    }
+}
+
+private struct RoutePlaceholderView: View {
+    let title: String
+    let path: String
+    let iconName: String
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color(.systemGroupedBackground)
+                    .ignoresSafeArea()
+
+                VStack(spacing: 12) {
+                    Image(systemName: iconName)
+                        .font(.system(size: 44, weight: .semibold))
+                        .foregroundStyle(.red)
+
+                    Text(path)
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                }
             }
-            .foregroundStyle(.white)
-            .padding(32)
-            .frame(maxWidth: 420)
+            .navigationTitle(title)
         }
     }
 }
