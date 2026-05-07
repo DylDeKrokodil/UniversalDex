@@ -70,9 +70,6 @@ struct PokedexView: View {
             .padding(.vertical, 10)
         }
         .background(AppTheme.screenBackground)
-        .refreshable {
-            await viewModel.reloadPokemon()
-        }
     }
 
     private var unavailableView: some View {

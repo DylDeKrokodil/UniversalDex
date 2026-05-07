@@ -7,14 +7,14 @@
 
 import Foundation
 
-struct PokeAPIPaginatedResponse<Resource: Decodable>: Decodable {
+struct PokeAPIPaginatedResponse<Resource: Codable>: Codable {
     let count: Int
     let next: URL?
     let previous: URL?
     let results: [Resource]
 }
 
-struct PokeAPINamedResource: Decodable {
+struct PokeAPINamedResource: Codable {
     let name: String
     let url: URL
 }

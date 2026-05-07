@@ -58,16 +58,7 @@ final class PokedexViewModel: ObservableObject {
         await loadNextPage()
     }
 
-    func reloadPokemon() async {
-        pokemon = []
-        offset = 0
-        totalCount = nil
-        errorMessage = nil
-
-        await loadNextPage()
-    }
-
-    private func loadNextPage() async {
+    private func loadNextPage(cachePolicy: APIResponseCachePolicy = .returnCacheDataElseLoad) async {
         guard !isLoadingPage, canLoadMore else {
             return
         }
@@ -76,7 +67,11 @@ final class PokedexViewModel: ObservableObject {
         defer { isLoadingPage = false }
 
         do {
-            let response = try await apiClient.fetchPokemonPage(limit: pageSize, offset: offset)
+            let response = try await apiClient.fetchPokemonPage(
+                limit: pageSize,
+                offset: offset,
+                cachePolicy: cachePolicy
+            )
             let newPokemon = response.results.compactMap(PokemonListItem.init)
 
             totalCount = response.count

@@ -8,14 +8,25 @@
 import Foundation
 
 struct PokeAPIClient {
+    private static let cacheMaxAge: TimeInterval = 180 * 24 * 60 * 60
+
     private let baseURL = URL(string: "https://pokeapi.co/api/v2")!
     private let session: URLSession
+    private let responseCache: DiskResponseCache
 
-    init(session: URLSession = .shared) {
+    init(
+        session: URLSession = .shared,
+        responseCache: DiskResponseCache? = nil
+    ) {
         self.session = session
+        self.responseCache = responseCache ?? .shared
     }
 
-    func fetchPokemonPage(limit: Int, offset: Int) async throws -> PokeAPIPaginatedResponse<PokeAPINamedResource> {
+    func fetchPokemonPage(
+        limit: Int,
+        offset: Int,
+        cachePolicy: APIResponseCachePolicy = .returnCacheDataElseLoad
+    ) async throws -> PokeAPIPaginatedResponse<PokeAPINamedResource> {
         var components = URLComponents(url: baseURL.appending(path: "pokemon"), resolvingAgainstBaseURL: false)
         components?.queryItems = [
             URLQueryItem(name: "limit", value: String(limit)),
@@ -26,6 +37,17 @@ struct PokeAPIClient {
             throw PokeAPIError.invalidURL
         }
 
+        let cacheKey = "pokeapi:pokemon:list:limit=\(limit):offset=\(offset)"
+
+        if cachePolicy == .returnCacheDataElseLoad {
+            if let cachedResponse: PokeAPIPaginatedResponse<PokeAPINamedResource> = await responseCache.value(
+                forKey: cacheKey,
+                maxAge: Self.cacheMaxAge
+            ) {
+                return cachedResponse
+            }
+        }
+
         let (data, response) = try await session.data(from: url)
 
         guard let httpResponse = response as? HTTPURLResponse,
@@ -33,7 +55,10 @@ struct PokeAPIClient {
             throw PokeAPIError.invalidResponse
         }
 
-        return try JSONDecoder().decode(PokeAPIPaginatedResponse<PokeAPINamedResource>.self, from: data)
+        let decodedResponse = try JSONDecoder().decode(PokeAPIPaginatedResponse<PokeAPINamedResource>.self, from: data)
+        await responseCache.save(decodedResponse, forKey: cacheKey)
+
+        return decodedResponse
     }
 }
 
