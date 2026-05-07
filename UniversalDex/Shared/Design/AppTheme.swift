@@ -10,4 +10,5 @@ import SwiftUI
 enum AppTheme {
     static let accentColor = Color.red
     static let screenBackground = Color(.systemGroupedBackground)
+    static let artworkBackground = Color(.secondarySystemGroupedBackground)
 }
