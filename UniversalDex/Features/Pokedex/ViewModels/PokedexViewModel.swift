@@ -13,6 +13,9 @@ final class PokedexViewModel: ObservableObject {
     @Published private(set) var pokemon: [PokemonListItem] = []
     @Published private(set) var isLoadingPage = false
     @Published private(set) var errorMessage: String?
+    @Published var searchText = ""
+    @Published var selectedGeneration = PokedexGeneration.all
+    @Published var sortOption = PokedexSortOption.numberAscending
 
     private let apiClient: PokeAPIClient
     private let pageSize = 30
@@ -21,6 +24,24 @@ final class PokedexViewModel: ObservableObject {
 
     var hasLoadedPokemon: Bool {
         !pokemon.isEmpty
+    }
+
+    var filteredPokemon: [PokemonListItem] {
+        let searchedPokemon = pokemon.filter { pokemon in
+            let matchesSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                || pokemon.displayName.localizedCaseInsensitiveContains(searchText)
+                || pokemon.formattedNumber.contains(searchText)
+
+            return matchesSearch && selectedGeneration.contains(pokemon)
+        }
+
+        return sortOption.sort(searchedPokemon)
+    }
+
+    var hasActiveFilters: Bool {
+        !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || selectedGeneration != .all
+            || sortOption != .numberAscending
     }
 
     var canLoadMore: Bool {
@@ -45,6 +66,7 @@ final class PokedexViewModel: ObservableObject {
 
     func loadMoreIfNeeded(currentItem: PokemonListItem) async {
         guard canLoadMore,
+              !hasActiveFilters,
               !isLoadingPage,
               shouldLoadMore(after: currentItem) else {
             return

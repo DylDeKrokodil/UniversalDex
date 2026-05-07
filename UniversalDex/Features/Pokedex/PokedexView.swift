@@ -35,15 +35,25 @@ struct PokedexView: View {
 
     private var pokemonList: some View {
         ScrollView {
+            PokedexFilterBar(
+                selectedGeneration: $viewModel.selectedGeneration,
+                sortOption: $viewModel.sortOption
+            )
+
             LazyVGrid(columns: columns, spacing: 10) {
-                ForEach(viewModel.pokemon) { pokemon in
+                ForEach(viewModel.filteredPokemon) { pokemon in
                     PokemonGridCard(pokemon: pokemon)
                         .task {
                             await viewModel.loadMoreIfNeeded(currentItem: pokemon)
                         }
                 }
 
-                if viewModel.isLoadingPage {
+                if viewModel.filteredPokemon.isEmpty {
+                    ContentUnavailableView.search(text: viewModel.searchText)
+                        .gridCellColumns(3)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 24)
+                } else if viewModel.isLoadingPage {
                     ProgressView()
                         .gridCellColumns(3)
                         .frame(maxWidth: .infinity)
@@ -70,6 +80,7 @@ struct PokedexView: View {
             .padding(.vertical, 10)
         }
         .background(AppTheme.screenBackground)
+        .searchable(text: $viewModel.searchText, placement: .navigationBarDrawer(displayMode: .always))
     }
 
     private var unavailableView: some View {
