@@ -48,7 +48,12 @@ struct PokedexView: View {
                         }
                 }
 
-                if viewModel.filteredPokemon.isEmpty {
+                if viewModel.filteredPokemon.isEmpty && viewModel.isHydratingAllPokemon {
+                    ProgressView("Loading matching Pokemon...")
+                        .gridCellColumns(3)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 24)
+                } else if viewModel.filteredPokemon.isEmpty {
                     ContentUnavailableView.search(text: viewModel.searchText)
                         .gridCellColumns(3)
                         .frame(maxWidth: .infinity)
@@ -58,6 +63,17 @@ struct PokedexView: View {
                         .gridCellColumns(3)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
+                } else if viewModel.isHydratingAllPokemon {
+                    HStack(spacing: 8) {
+                        ProgressView()
+
+                        Text("Preparing full Pokedex...")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                    .gridCellColumns(3)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
                 } else if let errorMessage = viewModel.errorMessage {
                     VStack(spacing: 8) {
                         Text(errorMessage)

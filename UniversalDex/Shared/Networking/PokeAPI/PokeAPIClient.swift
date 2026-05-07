@@ -38,16 +38,23 @@ struct PokeAPIClient {
         }
 
         let cacheKey = "pokeapi:pokemon:list:limit=\(limit):offset=\(offset)"
+        let requestLabel = "pokemon list limit=\(limit) offset=\(offset)"
 
         if cachePolicy == .returnCacheDataElseLoad {
             if let cachedResponse: PokeAPIPaginatedResponse<PokeAPINamedResource> = await responseCache.value(
                 forKey: cacheKey,
                 maxAge: Self.cacheMaxAge
             ) {
+                AppDebugLog.log("PokeAPI cache hit: \(requestLabel)")
                 return cachedResponse
             }
+
+            AppDebugLog.log("PokeAPI cache miss: \(requestLabel)")
+        } else {
+            AppDebugLog.log("PokeAPI cache bypass: \(requestLabel)")
         }
 
+        AppDebugLog.log("PokeAPI request: \(url.absoluteString)")
         let (data, response) = try await session.data(from: url)
 
         guard let httpResponse = response as? HTTPURLResponse,
@@ -57,6 +64,7 @@ struct PokeAPIClient {
 
         let decodedResponse = try JSONDecoder().decode(PokeAPIPaginatedResponse<PokeAPINamedResource>.self, from: data)
         await responseCache.save(decodedResponse, forKey: cacheKey)
+        AppDebugLog.log("PokeAPI cached response: \(requestLabel)")
 
         return decodedResponse
     }

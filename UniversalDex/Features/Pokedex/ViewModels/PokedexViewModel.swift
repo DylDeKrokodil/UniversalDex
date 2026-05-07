@@ -12,13 +12,14 @@ import Combine
 final class PokedexViewModel: ObservableObject {
     @Published private(set) var pokemon: [PokemonListItem] = []
     @Published private(set) var isLoadingPage = false
+    @Published private(set) var isHydratingAllPokemon = false
     @Published private(set) var errorMessage: String?
     @Published var searchText = ""
     @Published var selectedGeneration = PokedexGeneration.all
     @Published var sortOption = PokedexSortOption.numberAscending
 
     private let apiClient: PokeAPIClient
-    private let pageSize = 30
+    private let pageSize = 120
     private var offset = 0
     private var totalCount: Int?
 
@@ -49,7 +50,7 @@ final class PokedexViewModel: ObservableObject {
             return true
         }
 
-        return pokemon.count < totalCount
+        return offset < totalCount
     }
 
     init(apiClient: PokeAPIClient? = nil) {
@@ -61,32 +62,78 @@ final class PokedexViewModel: ObservableObject {
             return
         }
 
-        await loadNextPage()
+        AppDebugLog.log("Pokedex initial load started")
+        _ = await loadNextPage()
+        startHydratingAllPokemon()
     }
 
     func loadMoreIfNeeded(currentItem: PokemonListItem) async {
         guard canLoadMore,
               !hasActiveFilters,
+              !isHydratingAllPokemon,
               !isLoadingPage,
               shouldLoadMore(after: currentItem) else {
             return
         }
 
-        await loadNextPage()
+        _ = await loadNextPage()
     }
 
     func retry() async {
         errorMessage = nil
-        await loadNextPage()
+        _ = await loadNextPage()
+        startHydratingAllPokemon()
     }
 
-    private func loadNextPage(cachePolicy: APIResponseCachePolicy = .returnCacheDataElseLoad) async {
-        guard !isLoadingPage, canLoadMore else {
+    private func startHydratingAllPokemon() {
+        guard canLoadMore, !isHydratingAllPokemon else {
             return
         }
 
-        isLoadingPage = true
-        defer { isLoadingPage = false }
+        Task {
+            await hydrateRemainingPokemon()
+        }
+    }
+
+    private func hydrateRemainingPokemon() async {
+        guard canLoadMore, !isHydratingAllPokemon else {
+            return
+        }
+
+        isHydratingAllPokemon = true
+        AppDebugLog.log("Pokedex background cache hydration started at offset \(offset)")
+        defer { isHydratingAllPokemon = false }
+
+        while canLoadMore {
+            let loadedPage = await loadNextPage(showsPageLoading: false)
+
+            if !loadedPage {
+                AppDebugLog.log("Pokedex background cache hydration stopped at offset \(offset)")
+                return
+            }
+        }
+
+        AppDebugLog.log("Pokedex background cache hydration completed with \(pokemon.count) Pokemon")
+    }
+
+    @discardableResult
+    private func loadNextPage(
+        cachePolicy: APIResponseCachePolicy = .returnCacheDataElseLoad,
+        showsPageLoading: Bool = true
+    ) async -> Bool {
+        guard !isLoadingPage, canLoadMore else {
+            return false
+        }
+
+        if showsPageLoading {
+            isLoadingPage = true
+        }
+
+        defer {
+            if showsPageLoading {
+                isLoadingPage = false
+            }
+        }
 
         do {
             let response = try await apiClient.fetchPokemonPage(
@@ -98,11 +145,20 @@ final class PokedexViewModel: ObservableObject {
 
             totalCount = response.count
             offset += response.results.count
-            pokemon.append(contentsOf: newPokemon)
+            appendUniquePokemon(newPokemon)
             errorMessage = nil
+            AppDebugLog.log("Pokedex loaded page: offset \(offset), visible cache count \(pokemon.count)")
+            return true
         } catch {
             errorMessage = "Could not load Pokemon. Check your connection and try again."
+            AppDebugLog.log("Pokedex page load failed at offset \(offset): \(error.localizedDescription)")
+            return false
         }
+    }
+
+    private func appendUniquePokemon(_ newPokemon: [PokemonListItem]) {
+        let existingIDs = Set(pokemon.map(\.id))
+        pokemon.append(contentsOf: newPokemon.filter { !existingIDs.contains($0.id) })
     }
 
     private func shouldLoadMore(after item: PokemonListItem) -> Bool {
