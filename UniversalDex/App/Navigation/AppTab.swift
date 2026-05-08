@@ -50,12 +50,18 @@ enum AppTab: CaseIterable, Hashable, Identifiable {
     }
 
     @ViewBuilder
-    var content: some View {
+    func makeContent(
+        shinyHuntViewModel: ShinyHuntViewModel,
+        selectedTab: Binding<AppTab>
+    ) -> some View {
         switch self {
         case .home:
-            HomeView()
+            HomeView(
+                viewModel: shinyHuntViewModel,
+                selectedTab: selectedTab
+            )
         case .shiny:
-            ShinyView()
+            ShinyView(viewModel: shinyHuntViewModel)
         case .settings:
             SettingsView()
         }

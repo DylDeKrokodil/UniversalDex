@@ -9,11 +9,15 @@ import SwiftUI
 
 struct AppRootView: View {
     @State private var selectedTab = AppTab.home
+    @StateObject private var shinyHuntViewModel = ShinyHuntViewModel()
 
     var body: some View {
         TabView(selection: $selectedTab) {
             ForEach(AppTab.allCases) { tab in
-                tab.content
+                tab.makeContent(
+                    shinyHuntViewModel: shinyHuntViewModel,
+                    selectedTab: $selectedTab
+                )
                     .tag(tab)
                     .tabItem {
                         Image(systemName: tab.iconName)

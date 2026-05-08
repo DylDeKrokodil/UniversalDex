@@ -63,6 +63,41 @@ enum ShinyMethod: String, CaseIterable, Codable, Identifiable {
         }
     }
 
+    var dashboardLabel: String {
+        switch self {
+        case .randomEncounter:
+            return "Random"
+        case .shinyCharm:
+            return "Charm"
+        case .masuda:
+            return "Masuda"
+        case .masudaCharm:
+            return "Masuda + Charm"
+        case .pokeRadarChain40:
+            return "Radar"
+        case .chainFishing:
+            return "Chain Fishing"
+        case .friendSafari:
+            return "Safari"
+        case .dexNav:
+            return "DexNav"
+        case .sosBattle:
+            return "SOS"
+        case .catchCombo31:
+            return "Catch Combo"
+        case .dynamaxAdventure:
+            return "Dynamax"
+        case .massOutbreak:
+            return "Outbreak"
+        case .massiveMassOutbreak:
+            return "MMO"
+        case .sandwichCharmOutbreak:
+            return "Sandwich + Charm"
+        case .customOdds:
+            return "Custom"
+        }
+    }
+
     func isAvailable(in game: ShinyGame) -> Bool {
         switch self {
         case .randomEncounter:

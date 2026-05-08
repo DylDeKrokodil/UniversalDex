@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ShinyView: View {
-    @StateObject private var viewModel = ShinyHuntViewModel()
+    @ObservedObject var viewModel: ShinyHuntViewModel
     @State private var isPresentingNewHunt = false
     @State private var navigationPath: [ShinyHunt.ID] = []
 
@@ -103,6 +103,6 @@ struct ShinyView: View {
 
 struct ShinyView_Previews: PreviewProvider {
     static var previews: some View {
-        ShinyView()
+        ShinyView(viewModel: ShinyHuntViewModel())
     }
 }

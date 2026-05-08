@@ -21,7 +21,7 @@ final class ShinyHuntViewModel: ObservableObject {
     var activeHunts: [ShinyHunt] {
         hunts
             .filter { !$0.isCaught }
-            .sorted { $0.createdAt > $1.createdAt }
+            .sorted { $0.lastActivityAt > $1.lastActivityAt }
     }
 
     var caughtHunts: [ShinyHunt] {
@@ -34,6 +34,10 @@ final class ShinyHuntViewModel: ObservableObject {
         loadHunts()
     }
 
+    init(previewHunts: [ShinyHunt]) {
+        hunts = previewHunts
+    }
+
     func add(_ hunt: ShinyHunt) {
         hunts.insert(hunt, at: 0)
     }
@@ -44,19 +48,25 @@ final class ShinyHuntViewModel: ObservableObject {
                 return
             }
 
-            editableHunt.encounters += 1
+            editableHunt.recordEncounterChange(delta: 1, kind: .increment)
         }
     }
 
     func decrementEncounters(for hunt: ShinyHunt) {
         update(hunt) { editableHunt in
-            editableHunt.encounters = max(0, editableHunt.encounters - 1)
+            guard editableHunt.encounters > 0 else {
+                return
+            }
+
+            editableHunt.recordEncounterChange(delta: -1, kind: .decrement)
         }
     }
 
     func setEncounters(for hunt: ShinyHunt, to encounters: Int) {
         update(hunt) { editableHunt in
-            editableHunt.encounters = max(0, encounters)
+            let sanitizedEncounters = max(0, encounters)
+            let delta = sanitizedEncounters - editableHunt.encounters
+            editableHunt.recordEncounterChange(delta: delta, kind: .adjustment)
         }
     }
 
@@ -92,7 +102,9 @@ final class ShinyHuntViewModel: ObservableObject {
         }
 
         do {
-            hunts = try JSONDecoder().decode([ShinyHunt].self, from: data)
+            hunts = try JSONDecoder()
+                .decode([ShinyHunt].self, from: data)
+                .map { $0.migratedForEncounterHistory() }
         } catch {
             AppDebugLog.log("Could not decode shiny hunts: \(error.localizedDescription)")
             hunts = []
