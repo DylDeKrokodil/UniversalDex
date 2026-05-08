@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Outfit", sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+
+  --color-ember-50: #fff4ec;
+  --color-ember-100: #ffe4d2;
+  --color-ember-200: #ffc49f;
+  --color-ember-300: #ff9c66;
+  --color-ember-400: #ff7339;
+  --color-ember-500: #f4511e;
+  --color-ember-600: #d63f14;
+  --color-ember-700: #a73112;
+  --color-ember-800: #742211;
+  --color-ink-950: #140f11;
+  --color-ink-900: #1d1519;
+  --color-ink-800: #2c2026;
+  --color-cream-100: #fff8f1;
+  --color-mint-300: #8ef2cb;
+  --color-sky-300: #93d8ff;
+}
+
+:root {
+  color: var(--color-cream-100);
+  background:
+    radial-gradient(circle at top, rgba(255, 156, 102, 0.22), transparent 30%),
+    linear-gradient(180deg, #140f11 0%, #1d1519 45%, #120d0f 100%);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+a {
+  text-decoration: none;
+}
+
+::selection {
+  background: rgba(255, 115, 57, 0.35);
+}
