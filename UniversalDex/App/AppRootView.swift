@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct AppRootView: View {
-    @State private var selectedTab = AppTab.shiny
+    @State private var selectedTab = AppTab.home
 
     var body: some View {
         TabView(selection: $selectedTab) {
