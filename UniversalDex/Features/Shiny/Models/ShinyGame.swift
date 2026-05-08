@@ -188,30 +188,32 @@ enum ShinyGame: String, CaseIterable, Codable, Identifiable {
         }
     }
 
-    func containsRegionalPokemon(_ pokemon: PokemonListItem) -> Bool {
-        regionalPokemonIDRange.contains(pokemon.id)
+    func containsAvailablePokemon(_ pokemon: PokemonListItem) -> Bool {
+        availablePokemonIDRange.contains(pokemon.id)
     }
 
-    private var regionalPokemonIDRange: ClosedRange<Int> {
+    private var availablePokemonIDRange: ClosedRange<Int> {
         switch self {
         case .fireRedLeafGreen, .letsGo:
             return 1...151
-        case .goldSilverCrystal, .heartGoldSoulSilver:
-            return 152...251
-        case .rubySapphireEmerald, .omegaRubyAlphaSapphire:
-            return 252...386
-        case .diamondPearlPlatinum, .brilliantDiamondShiningPearl, .legendsArceus:
-            return 387...493
+        case .goldSilverCrystal:
+            return 1...251
+        case .heartGoldSoulSilver:
+            return 1...493
+        case .rubySapphireEmerald:
+            return 1...386
+        case .diamondPearlPlatinum, .brilliantDiamondShiningPearl:
+            return 1...493
         case .blackWhite, .black2White2:
-            return 494...649
-        case .xy:
-            return 650...721
+            return 1...649
+        case .xy, .omegaRubyAlphaSapphire:
+            return 1...721
         case .sunMoon, .ultraSunUltraMoon:
-            return 722...809
-        case .swordShield:
-            return 810...905
+            return 1...809
+        case .swordShield, .legendsArceus:
+            return 1...905
         case .scarletViolet:
-            return 906...1025
+            return 1...1025
         }
     }
 }

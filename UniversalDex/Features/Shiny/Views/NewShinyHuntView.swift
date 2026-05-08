@@ -12,12 +12,19 @@ struct NewShinyHuntView: View {
 
     @StateObject private var pokemonPickerViewModel = ShinyPokemonPickerViewModel()
     @State private var selectedGame = ShinyGame.scarletViolet
+    @State private var selectedPokemon: PokemonListItem?
     @State private var path: [NewShinyHuntStep] = []
 
     let addAction: (ShinyHunt) -> Void
 
-    private var regionalPokemon: [PokemonListItem] {
+    private var availablePokemon: [PokemonListItem] {
         pokemonPickerViewModel.filteredPokemon(for: selectedGame)
+    }
+
+    private var availableMethods: [ShinyMethod] {
+        ShinyMethod.allCases.filter { method in
+            method != .customOdds && method.isAvailable(in: selectedGame)
+        }
     }
 
     var body: some View {
@@ -28,6 +35,8 @@ struct NewShinyHuntView: View {
                 switch step {
                 case .pokemon:
                     pokemonPicker
+                case .method:
+                    methodPicker
                 }
             }
             .toolbar {
@@ -49,6 +58,7 @@ struct NewShinyHuntView: View {
                 ForEach(ShinyGame.allCases) { game in
                     Button {
                         selectedGame = game
+                        selectedPokemon = nil
                         pokemonPickerViewModel.searchText = ""
                         path.append(.pokemon)
                     } label: {
@@ -63,22 +73,23 @@ struct NewShinyHuntView: View {
     private var pokemonPicker: some View {
         List {
             Section {
-                TextField("Search \(selectedGame.regionName) Pokemon", text: $pokemonPickerViewModel.searchText)
+                TextField("Search Pokemon", text: $pokemonPickerViewModel.searchText)
             }
 
-            Section("\(selectedGame.regionName) Pokemon") {
+            Section("Pokemon Available in \(selectedGame.displayName)") {
                 if pokemonPickerViewModel.isLoading {
                     ProgressView("Loading Pokemon...")
                 } else if let errorMessage = pokemonPickerViewModel.errorMessage {
                     Text(errorMessage)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
-                } else if regionalPokemon.isEmpty {
+                } else if availablePokemon.isEmpty {
                     ContentUnavailableView.search(text: pokemonPickerViewModel.searchText)
                 } else {
-                    ForEach(regionalPokemon) { pokemon in
+                    ForEach(availablePokemon) { pokemon in
                         Button {
-                            createHunt(for: pokemon)
+                            selectedPokemon = pokemon
+                            path.append(.method)
                         } label: {
                             ShinyPokemonPickerRow(pokemon: pokemon)
                         }
@@ -87,18 +98,49 @@ struct NewShinyHuntView: View {
                 }
             }
         }
-        .navigationTitle(selectedGame.regionName)
+        .navigationTitle("Select Pokemon")
         .navigationBarTitleDisplayMode(.inline)
     }
 
-    private func createHunt(for pokemon: PokemonListItem) {
+    private var methodPicker: some View {
+        List {
+            if let selectedPokemon {
+                Section("Pokemon") {
+                    ShinyPokemonPickerRow(pokemon: selectedPokemon)
+                }
+            }
+
+            Section("Methods for \(selectedGame.displayName)") {
+                ForEach(availableMethods) { method in
+                    Button {
+                        createHunt(with: method)
+                    } label: {
+                        ShinyMethodPickerRow(
+                            method: method,
+                            oddsText: method.oddsText(in: selectedGame),
+                            note: method.note(in: selectedGame)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .navigationTitle("Select Method")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func createHunt(with method: ShinyMethod) {
+        guard let selectedPokemon else {
+            return
+        }
+
         addAction(
             ShinyHunt(
-                pokemonID: pokemon.id,
-                pokemonName: pokemon.displayName,
+                pokemonID: selectedPokemon.id,
+                pokemonName: selectedPokemon.displayName,
                 game: selectedGame,
-                method: .randomEncounter,
-                oddsDenominator: ShinyMethod.randomEncounter.oddsDenominator(in: selectedGame),
+                method: method,
+                oddsDenominator: method.oddsDenominator(in: selectedGame),
                 encounters: 0
             )
         )
@@ -108,6 +150,7 @@ struct NewShinyHuntView: View {
 
 private enum NewShinyHuntStep: Hashable {
     case pokemon
+    case method
 }
 
 private struct ShinyGamePickerRow: View {
@@ -132,6 +175,33 @@ private struct ShinyGamePickerRow: View {
             Image(systemName: "chevron.right")
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(.tertiary)
+        }
+        .padding(.vertical, 4)
+        .contentShape(Rectangle())
+    }
+}
+
+private struct ShinyMethodPickerRow: View {
+    let method: ShinyMethod
+    let oddsText: String
+    let note: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                Text(method.displayName)
+                    .foregroundStyle(.primary)
+
+                Spacer()
+
+                Text(oddsText)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(AppTheme.accentColor)
+            }
+
+            Text(note)
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)
         .contentShape(Rectangle())

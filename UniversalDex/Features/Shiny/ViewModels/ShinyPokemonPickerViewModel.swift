@@ -19,19 +19,17 @@ final class ShinyPokemonPickerViewModel: ObservableObject {
 
     func filteredPokemon(for game: ShinyGame) -> [PokemonListItem] {
         let trimmedSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        let regionalPokemon = pokemon.filter { game.containsRegionalPokemon($0) }
+        let availablePokemon = pokemon.filter { game.containsAvailablePokemon($0) }
 
         guard !trimmedSearch.isEmpty else {
-            return Array(regionalPokemon.prefix(30))
+            return availablePokemon
         }
 
-        return regionalPokemon
+        return availablePokemon
             .filter { pokemon in
                 pokemon.displayName.localizedCaseInsensitiveContains(trimmedSearch)
                     || pokemon.formattedNumber.contains(trimmedSearch)
             }
-            .prefix(30)
-            .map { $0 }
     }
 
     init(apiClient: PokeAPIClient? = nil) {
