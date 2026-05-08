@@ -10,30 +10,27 @@ type ScreenshotShowcaseProps = {
 
 const screenshotImages = [listScreenshot, detailScreenshot];
 
-type PhoneMockupProps = {
+type IPhoneMockupProps = {
   imageSrc: string;
   imageAlt: string;
 };
 
-function PhoneMockup({ imageSrc, imageAlt }: PhoneMockupProps) {
+function IPhoneMockup({ imageSrc, imageAlt }: IPhoneMockupProps) {
   return (
     <div className="relative mx-auto w-full max-w-[22rem]">
-      <div className="absolute inset-x-10 top-4 h-8 rounded-full bg-white/8 blur-xl" />
-      <div className="relative rounded-[3.4rem] bg-[linear-gradient(160deg,#3f353a_0%,#1c1618_45%,#0f0b0d_100%)] p-[10px] shadow-[0_30px_80px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.14)]">
-        <div className="pointer-events-none absolute inset-y-24 left-[5px] w-[3px] rounded-full bg-white/10" />
-        <div className="pointer-events-none absolute inset-y-32 right-[5px] w-[3px] rounded-full bg-white/10" />
-        <div className="relative overflow-hidden rounded-[2.9rem] border border-black/30 bg-black shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)]">
-          <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center pt-3">
-            <div className="h-8 w-40 rounded-full bg-black shadow-[inset_0_-1px_0_rgba(255,255,255,0.05)]" />
-          </div>
-          <div className="pointer-events-none absolute left-1/2 top-2 z-20 h-1.5 w-16 -translate-x-1/2 rounded-full bg-white/8 blur-[1px]" />
+      <div className="absolute inset-x-10 bottom-0 h-12 rounded-full bg-black/40 blur-2xl" />
+      <div className="relative rounded-[3.6rem] bg-[linear-gradient(155deg,#4f4349_0%,#21191d_28%,#120d10_70%,#43373d_100%)] p-[10px] shadow-[0_36px_90px_rgba(0,0,0,0.52),inset_0_1px_0_rgba(255,255,255,0.18),inset_0_-1px_0_rgba(0,0,0,0.28)]">
+        <div className="pointer-events-none absolute left-[4px] top-28 h-16 w-[3px] rounded-full bg-white/14" />
+        <div className="pointer-events-none absolute left-[4px] top-48 h-24 w-[3px] rounded-full bg-white/14" />
+        <div className="pointer-events-none absolute left-[4px] top-80 h-24 w-[3px] rounded-full bg-white/14" />
+        <div className="pointer-events-none absolute right-[4px] top-56 h-28 w-[3px] rounded-full bg-white/14" />
+
+        <div className="overflow-hidden rounded-[3rem] border border-black/35 bg-black shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)]">
           <img
             src={imageSrc}
             alt={imageAlt}
             className="block aspect-[603/1311] w-full object-cover object-top"
           />
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),transparent)]" />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-[linear-gradient(0deg,rgba(0,0,0,0.22),transparent)]" />
         </div>
       </div>
     </div>
@@ -46,7 +43,7 @@ export function ScreenshotShowcase({ items }: ScreenshotShowcaseProps) {
       <SectionIntro
         eyebrow="Screenshots"
         title="The real product now leads the story"
-        description="These screens give the landing page actual product proof and help the site feel grounded in what UniversalDex already does well."
+        description="These screens show how UniversalDex keeps hunt tracking calm, readable, and satisfying during real shiny hunting sessions."
       />
 
       <div className="mt-10 grid gap-8 xl:grid-cols-[0.9fr_1.1fr]">
@@ -84,12 +81,12 @@ export function ScreenshotShowcase({ items }: ScreenshotShowcaseProps) {
               className="group"
             >
               <div className="transition duration-300 group-hover:-translate-y-1 group-hover:scale-[1.01]">
-                <PhoneMockup
+                <IPhoneMockup
                   imageSrc={screenshotImages[index]}
                   imageAlt={item.imageAlt}
                 />
               </div>
-              <figcaption className="mx-auto mt-5 max-w-[22rem] px-1">
+              <figcaption className="mx-auto max-w-[22rem] px-2 pb-2 pt-5">
                 <p className="font-display text-2xl font-bold text-white">{item.title}</p>
                 <p className="mt-2 text-base leading-7 text-white/58">{item.description}</p>
               </figcaption>

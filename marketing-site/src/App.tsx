@@ -70,8 +70,8 @@ function App() {
         <section id="features" className="mx-auto max-w-7xl px-6 py-8 lg:px-10">
           <SectionIntro
             eyebrow="Features"
-            title="A product story with real structure behind it"
-            description="This version is organized to scale: reusable sections, shared content, and a clean visual system that can grow into a full production marketing site."
+            title="A cleaner companion for every hunt"
+            description="UniversalDex helps shiny hunters stay focused, motivated, and organized whether they are starting a fresh target or grinding through a long session."
           />
           <FeatureGrid items={featureCards} />
         </section>

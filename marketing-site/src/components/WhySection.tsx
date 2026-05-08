@@ -11,8 +11,8 @@ export function WhySection({ highlights }: WhySectionProps) {
       <div className="rounded-[2rem] border border-white/8 bg-gradient-to-br from-white/8 to-white/[0.03] p-7 backdrop-blur-sm">
         <SectionIntro
           eyebrow="Why it works"
-          title="A landing page with a clearer professional story"
-          description="The structure now supports launch messaging, feature storytelling, and future content additions without turning the codebase into one oversized page component."
+          title="Built around the rhythm of shiny hunting"
+          description="UniversalDex is easiest to understand when you see how every screen supports pace, progress, and that small hit of excitement every time a hunt moves forward."
         />
       </div>
 

@@ -54,8 +54,8 @@ export const featureCards: FeatureItem[] = [
     body: 'Track active hunts, encounter counts, methods, and caught targets in one focused flow built for repetition.',
   },
   {
-    title: 'Professional product framing',
-    body: 'Reusable sections and consistent copy make the site feel intentional now and easier to expand later.',
+    title: 'Made for long sessions',
+    body: 'UniversalDex keeps the important details visible so you can stay in rhythm through chain hunting, resets, and repeat encounters.',
   },
   {
     title: 'Built for collectors',
@@ -66,13 +66,13 @@ export const featureCards: FeatureItem[] = [
 export const socialProofItems: SocialProofItem[] = [
   {
     kicker: 'Focused',
-    title: 'A single clear conversion goal',
-    body: 'The landing page is shaped around one priority: moving interested players into the founding Discord community.',
+    title: 'Everything points back to the hunt',
+    body: 'The product is designed to keep your active targets, odds, and progress close at hand without overwhelming the screen.',
   },
   {
-    kicker: 'Structured',
-    title: 'Reusable components from the start',
-    body: 'Instead of a one-off page, the site now has a component structure that supports future sections, screenshots, and launch content.',
+    kicker: 'Motivating',
+    title: 'Progress you actually want to check',
+    body: 'A warm visual language and clear progress surfaces make every session feel like it is moving somewhere meaningful.',
   },
   {
     kicker: 'Branded',
@@ -117,9 +117,9 @@ export const screenshotItems: ScreenshotItem[] = [
 
 export const faqItems: FAQItem[] = [
   {
-    question: 'Can this become a real production marketing site?',
+    question: 'What is UniversalDex for?',
     answer:
-      'Yes. The page is now structured as a reusable React and Tailwind app, so adding more sections, routes, analytics, or forms will be straightforward.',
+      'UniversalDex is built for shiny hunters and collectors who want a cleaner, more motivating way to track hunts, odds, and completed catches.',
   },
   {
     question: 'What is the current launch offer?',
@@ -127,13 +127,13 @@ export const faqItems: FAQItem[] = [
       'The current primary call to action is a Discord invite for the first 100 members, giving early supporters a direct place to follow progress and shape the product.',
   },
   {
-    question: 'Can we add screenshots from the app later?',
+    question: 'What can early members expect?',
     answer:
-      'Absolutely. The structure is ready for App Store badges, product screenshots, founder messaging, and a more detailed launch narrative.',
+      'Early members get product updates, a closer look at features in progress, and a chance to influence the direction of the app before wider launch.',
   },
   {
-    question: 'Can this stay separate from the Swift app?',
+    question: 'What makes it different from a generic tracker?',
     answer:
-      'Yes. Keeping the site in its own folder makes deployment and marketing iteration much easier while the app evolves independently.',
+      'UniversalDex is built around the feeling of shiny hunting itself, with a calmer interface, clearer progress views, and a collector-first visual style.',
   },
 ];
