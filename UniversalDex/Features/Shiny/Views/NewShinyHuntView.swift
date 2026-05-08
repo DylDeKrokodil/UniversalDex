@@ -29,14 +29,30 @@ struct NewShinyHuntView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            gamePicker
+            ShinyGamePickerList { game in
+                handleGameSelection(game)
+            }
             .navigationTitle("Select Game")
             .navigationDestination(for: NewShinyHuntStep.self) { step in
                 switch step {
                 case .pokemon:
-                    pokemonPicker
+                    ShinyPokemonPickerList(
+                        selectedGame: selectedGame,
+                        searchText: $pokemonPickerViewModel.searchText,
+                        pokemon: availablePokemon,
+                        isLoading: pokemonPickerViewModel.isLoading,
+                        errorMessage: pokemonPickerViewModel.errorMessage
+                    ) { pokemon in
+                        handlePokemonSelection(pokemon)
+                    }
                 case .method:
-                    methodPicker
+                    ShinyMethodPickerList(
+                        selectedGame: selectedGame,
+                        selectedPokemon: selectedPokemon,
+                        methods: availableMethods
+                    ) { method in
+                        createHunt(with: method)
+                    }
                 }
             }
             .toolbar {
@@ -52,81 +68,16 @@ struct NewShinyHuntView: View {
         }
     }
 
-    private var gamePicker: some View {
-        List {
-            Section {
-                ForEach(ShinyGame.allCases) { game in
-                    Button {
-                        selectedGame = game
-                        selectedPokemon = nil
-                        pokemonPickerViewModel.searchText = ""
-                        path.append(.pokemon)
-                    } label: {
-                        ShinyGamePickerRow(game: game)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
+    private func handleGameSelection(_ game: ShinyGame) {
+        selectedGame = game
+        selectedPokemon = nil
+        pokemonPickerViewModel.searchText = ""
+        path.append(.pokemon)
     }
 
-    private var pokemonPicker: some View {
-        List {
-            Section {
-                TextField("Search Pokemon", text: $pokemonPickerViewModel.searchText)
-            }
-
-            Section("Pokemon Available in \(selectedGame.displayName)") {
-                if pokemonPickerViewModel.isLoading {
-                    ProgressView("Loading Pokemon...")
-                } else if let errorMessage = pokemonPickerViewModel.errorMessage {
-                    Text(errorMessage)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                } else if availablePokemon.isEmpty {
-                    ContentUnavailableView.search(text: pokemonPickerViewModel.searchText)
-                } else {
-                    ForEach(availablePokemon) { pokemon in
-                        Button {
-                            selectedPokemon = pokemon
-                            path.append(.method)
-                        } label: {
-                            ShinyPokemonPickerRow(pokemon: pokemon)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-            }
-        }
-        .navigationTitle("Select Pokemon")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private var methodPicker: some View {
-        List {
-            if let selectedPokemon {
-                Section("Pokemon") {
-                    ShinyPokemonPickerRow(pokemon: selectedPokemon)
-                }
-            }
-
-            Section("Methods for \(selectedGame.displayName)") {
-                ForEach(availableMethods) { method in
-                    Button {
-                        createHunt(with: method)
-                    } label: {
-                        ShinyMethodPickerRow(
-                            method: method,
-                            oddsText: method.oddsText(in: selectedGame),
-                            note: method.note(in: selectedGame)
-                        )
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
-        .navigationTitle("Select Method")
-        .navigationBarTitleDisplayMode(.inline)
+    private func handlePokemonSelection(_ pokemon: PokemonListItem) {
+        selectedPokemon = pokemon
+        path.append(.method)
     }
 
     private func createHunt(with method: ShinyMethod) {
@@ -151,88 +102,6 @@ struct NewShinyHuntView: View {
 private enum NewShinyHuntStep: Hashable {
     case pokemon
     case method
-}
-
-private struct ShinyGamePickerRow: View {
-    let game: ShinyGame
-
-    var body: some View {
-        HStack(spacing: 12) {
-            ShinyGameIconView(game: game)
-
-            VStack(alignment: .leading, spacing: 3) {
-                Text(game.displayName)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-
-                Text(game.regionName)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(.tertiary)
-        }
-        .padding(.vertical, 4)
-        .contentShape(Rectangle())
-    }
-}
-
-private struct ShinyMethodPickerRow: View {
-    let method: ShinyMethod
-    let oddsText: String
-    let note: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .firstTextBaseline, spacing: 12) {
-                Text(method.displayName)
-                    .foregroundStyle(.primary)
-
-                Spacer()
-
-                Text(oddsText)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(AppTheme.accentColor)
-            }
-
-            Text(note)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-        .padding(.vertical, 4)
-        .contentShape(Rectangle())
-    }
-}
-
-private struct ShinyPokemonPickerRow: View {
-    let pokemon: PokemonListItem
-
-    var body: some View {
-        HStack(spacing: 12) {
-            ShinyPokemonArtworkView(url: pokemon.artworkURL)
-                .frame(width: 36, height: 36)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(pokemon.displayName)
-                    .foregroundStyle(.primary)
-
-                Text("#\(pokemon.formattedNumber)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(.tertiary)
-        }
-        .contentShape(Rectangle())
-    }
 }
 
 struct NewShinyHuntView_Previews: PreviewProvider {
