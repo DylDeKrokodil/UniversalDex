@@ -33,6 +33,6 @@ struct RoutePlaceholderView: View {
 
 struct RoutePlaceholderView_Previews: PreviewProvider {
     static var previews: some View {
-        RoutePlaceholderView(tab: .pokedex)
+        RoutePlaceholderView(tab: .settings)
     }
 }

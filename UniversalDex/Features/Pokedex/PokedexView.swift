@@ -26,7 +26,7 @@ struct PokedexView: View {
                     unavailableView
                 }
             }
-            .navigationTitle(AppTab.pokedex.title)
+            .navigationTitle("Pokedex")
             .task {
                 await viewModel.loadInitialPokemonIfNeeded()
             }
