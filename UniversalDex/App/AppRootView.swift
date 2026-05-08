@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct AppRootView: View {
+    @ObservedObject var authViewModel: AuthViewModel
+
     @State private var selectedTab = AppTab.home
     @StateObject private var shinyHuntViewModel = ShinyHuntViewModel()
 
@@ -16,7 +18,8 @@ struct AppRootView: View {
             ForEach(AppTab.allCases) { tab in
                 tab.makeContent(
                     shinyHuntViewModel: shinyHuntViewModel,
-                    selectedTab: $selectedTab
+                    selectedTab: $selectedTab,
+                    authViewModel: authViewModel
                 )
                     .tag(tab)
                     .tabItem {
@@ -31,6 +34,6 @@ struct AppRootView: View {
 
 struct AppRootView_Previews: PreviewProvider {
     static var previews: some View {
-        AppRootView()
+        AppRootView(authViewModel: AuthViewModel())
     }
 }
