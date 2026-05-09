@@ -33,9 +33,21 @@ enum PokedexSortOption: String, CaseIterable, Identifiable {
     func sort(_ pokemon: [PokemonListItem]) -> [PokemonListItem] {
         switch self {
         case .numberAscending:
-            return pokemon.sorted { $0.id < $1.id }
+            return pokemon.sorted { firstPokemon, secondPokemon in
+                if firstPokemon.displayID == secondPokemon.displayID {
+                    return firstPokemon.id < secondPokemon.id
+                }
+
+                return firstPokemon.displayID < secondPokemon.displayID
+            }
         case .numberDescending:
-            return pokemon.sorted { $0.id > $1.id }
+            return pokemon.sorted { firstPokemon, secondPokemon in
+                if firstPokemon.displayID == secondPokemon.displayID {
+                    return firstPokemon.id > secondPokemon.id
+                }
+
+                return firstPokemon.displayID > secondPokemon.displayID
+            }
         case .nameAscending:
             return pokemon.sorted { $0.displayName < $1.displayName }
         case .nameDescending:

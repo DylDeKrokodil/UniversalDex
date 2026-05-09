@@ -10,6 +10,7 @@ import Foundation
 struct ShinyHunt: Identifiable, Codable, Hashable {
     var id = UUID()
     var pokemonID: Int?
+    var pokemonFormID: Int?
     var pokemonName: String
     var huntName: String
     var game: ShinyGame
@@ -45,6 +46,7 @@ struct ShinyHunt: Identifiable, Codable, Hashable {
     enum CodingKeys: String, CodingKey {
         case id
         case pokemonID
+        case pokemonFormID
         case pokemonName
         case huntName
         case game
@@ -67,6 +69,7 @@ struct ShinyHunt: Identifiable, Codable, Hashable {
     init(
         id: UUID = UUID(),
         pokemonID: Int?,
+        pokemonFormID: Int? = nil,
         pokemonName: String,
         huntName: String? = nil,
         game: ShinyGame,
@@ -87,6 +90,7 @@ struct ShinyHunt: Identifiable, Codable, Hashable {
     ) {
         self.id = id
         self.pokemonID = pokemonID
+        self.pokemonFormID = pokemonFormID
         self.pokemonName = pokemonName
         self.huntName = huntName ?? pokemonName
         self.game = game
@@ -111,6 +115,7 @@ struct ShinyHunt: Identifiable, Codable, Hashable {
 
         id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         pokemonID = try container.decodeIfPresent(Int.self, forKey: .pokemonID)
+        pokemonFormID = try container.decodeIfPresent(Int.self, forKey: .pokemonFormID)
         pokemonName = try container.decode(String.self, forKey: .pokemonName)
         huntName = try container.decodeIfPresent(String.self, forKey: .huntName) ?? pokemonName
         game = try container.decode(ShinyGame.self, forKey: .game)
@@ -135,6 +140,7 @@ struct ShinyHunt: Identifiable, Codable, Hashable {
 
         try container.encode(id, forKey: .id)
         try container.encodeIfPresent(pokemonID, forKey: .pokemonID)
+        try container.encodeIfPresent(pokemonFormID, forKey: .pokemonFormID)
         try container.encode(pokemonName, forKey: .pokemonName)
         try container.encode(huntName, forKey: .huntName)
         try container.encode(game, forKey: .game)
@@ -195,51 +201,67 @@ struct ShinyHunt: Identifiable, Codable, Hashable {
     }
 
     var formattedPokemonNumber: String? {
+        guard let displayPokemonID else {
+            return nil
+        }
+
+        return String(format: "%03d", displayPokemonID)
+    }
+
+    private var displayPokemonID: Int? {
         guard let pokemonID else {
             return nil
         }
 
-        return String(format: "%03d", pokemonID)
+        if pokemonID > 1025, pokemonFormID == nil {
+            return Self.regionalFormBaseID(for: pokemonName) ?? pokemonID
+        }
+
+        return pokemonID
+    }
+
+    private var artworkPokemonID: Int? {
+        pokemonFormID ?? pokemonID
     }
 
     var artworkURL: URL? {
-        guard let pokemonID else {
+        guard let artworkPokemonID else {
             return nil
         }
 
-        return URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/\(pokemonID).png")
+        return URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/\(artworkPokemonID).png")
     }
 
     var gameShinySpriteURL: URL? {
-        guard let pokemonID else {
+        guard let artworkPokemonID else {
             return nil
         }
 
-        return game.shinySpriteURL(for: pokemonID)
+        return game.shinySpriteURL(for: artworkPokemonID)
     }
 
     var homeShinySpriteURL: URL? {
-        guard let pokemonID else {
+        guard let artworkPokemonID else {
             return nil
         }
 
-        return URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/shiny/\(pokemonID).png")
+        return URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/shiny/\(artworkPokemonID).png")
     }
 
     var gameAnimatedShinySpriteURL: URL? {
-        guard let pokemonID else {
+        guard let artworkPokemonID else {
             return nil
         }
 
-        return game.animatedShinySpriteURL(for: pokemonID)
+        return game.animatedShinySpriteURL(for: artworkPokemonID)
     }
 
     var showdownAnimatedShinySpriteURL: URL? {
-        guard let pokemonID else {
+        guard let artworkPokemonID else {
             return nil
         }
 
-        return URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/shiny/\(pokemonID).gif")
+        return URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/shiny/\(artworkPokemonID).gif")
     }
 
     var detailShinySpriteURLs: [URL] {
@@ -251,11 +273,11 @@ struct ShinyHunt: Identifiable, Codable, Hashable {
     }
 
     var latestCryURL: URL? {
-        guard let pokemonID else {
+        guard let artworkPokemonID else {
             return nil
         }
 
-        return URL(string: "https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/\(pokemonID).ogg")
+        return URL(string: "https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/\(artworkPokemonID).ogg")
     }
 
     var encounterProgress: Double {
@@ -274,6 +296,81 @@ struct ShinyHunt: Identifiable, Codable, Hashable {
         var seenURLs: Set<URL> = []
         return urls.filter { seenURLs.insert($0).inserted }
     }
+
+    private static func regionalFormBaseID(for name: String) -> Int? {
+        let normalizedName = name
+            .lowercased()
+            .replacingOccurrences(of: "'", with: "")
+        let formMarkers = ["alola", "galar", "hisui", "paldea"]
+
+        return regionalFormBaseIDsByName
+            .keys
+            .sorted { $0.count > $1.count }
+            .first { baseName in
+                formMarkers.contains { marker in
+                    normalizedName == "\(baseName) \(marker)"
+                        || normalizedName.hasPrefix("\(baseName) \(marker) ")
+                }
+            }
+            .flatMap { regionalFormBaseIDsByName[$0] }
+    }
+
+    private static let regionalFormBaseIDsByName: [String: Int] = [
+        "rattata": 19,
+        "raticate": 20,
+        "raichu": 26,
+        "sandshrew": 27,
+        "sandslash": 28,
+        "vulpix": 37,
+        "ninetales": 38,
+        "diglett": 50,
+        "dugtrio": 51,
+        "meowth": 52,
+        "persian": 53,
+        "growlithe": 58,
+        "arcanine": 59,
+        "geodude": 74,
+        "graveler": 75,
+        "golem": 76,
+        "ponyta": 77,
+        "rapidash": 78,
+        "slowpoke": 79,
+        "slowbro": 80,
+        "farfetchd": 83,
+        "grimer": 88,
+        "muk": 89,
+        "voltorb": 100,
+        "electrode": 101,
+        "exeggutor": 103,
+        "marowak": 105,
+        "weezing": 110,
+        "mr mime": 122,
+        "tauros": 128,
+        "articuno": 144,
+        "zapdos": 145,
+        "moltres": 146,
+        "typhlosion": 157,
+        "slowking": 199,
+        "wooper": 194,
+        "qwilfish": 211,
+        "sneasel": 215,
+        "corsola": 222,
+        "zigzagoon": 263,
+        "linoone": 264,
+        "samurott": 503,
+        "darumaka": 554,
+        "darmanitan": 555,
+        "yamask": 562,
+        "lilligant": 549,
+        "zorua": 570,
+        "zoroark": 571,
+        "stunfisk": 618,
+        "braviary": 628,
+        "sliggoo": 705,
+        "goodra": 706,
+        "avalugg": 713,
+        "decidueye": 724
+    ]
 
     var cumulativeProbabilityText: String {
         guard oddsDenominator > 0, encounters > 0 else {

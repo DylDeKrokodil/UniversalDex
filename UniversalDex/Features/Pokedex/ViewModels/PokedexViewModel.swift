@@ -141,7 +141,10 @@ final class PokedexViewModel: ObservableObject {
                 offset: offset,
                 cachePolicy: cachePolicy
             )
-            let newPokemon = response.results.compactMap(PokemonListItem.init)
+            let newPokemon = PokemonListItem.makeListItems(
+                from: response.results,
+                basePokemon: pokemon
+            )
 
             totalCount = response.count
             offset += response.results.count

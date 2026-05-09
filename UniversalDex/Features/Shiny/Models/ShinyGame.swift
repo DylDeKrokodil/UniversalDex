@@ -262,7 +262,11 @@ enum ShinyGame: String, CaseIterable, Codable, Identifiable {
     }
 
     func containsAvailablePokemon(_ pokemon: PokemonListItem) -> Bool {
-        availablePokemonIDRange.contains(pokemon.id) || supportsSpecialForm(pokemon)
+        if pokemon.id != pokemon.displayID {
+            return supportsSpecialForm(pokemon)
+        }
+
+        return availablePokemonIDRange.contains(pokemon.displayID)
     }
 
     func shinySpriteURL(for pokemonID: Int) -> URL? {

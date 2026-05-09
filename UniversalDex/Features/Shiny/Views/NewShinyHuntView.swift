@@ -287,7 +287,8 @@ struct NewShinyHuntView: View {
 
         addAction(
             ShinyHunt(
-                pokemonID: selectedPokemon.id,
+                pokemonID: selectedPokemon.displayID,
+                pokemonFormID: selectedPokemon.id == selectedPokemon.displayID ? nil : selectedPokemon.id,
                 pokemonName: selectedPokemon.displayName,
                 huntName: huntName.trimmingCharacters(in: .whitespacesAndNewlines),
                 game: selectedGame,

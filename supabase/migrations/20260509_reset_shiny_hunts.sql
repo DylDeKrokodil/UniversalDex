@@ -11,6 +11,7 @@ create table public.shiny_hunts (
     user_id uuid not null references auth.users(id) on delete cascade,
 
     pokemon_id integer,
+    pokemon_form_id integer,
     pokemon_name text not null,
     hunt_name text not null default '',
     game text not null,

@@ -121,6 +121,7 @@ private struct ShinyHuntRow: Codable {
     let id: UUID
     let userID: UUID
     let pokemonID: Int?
+    let pokemonFormID: Int?
     let pokemonName: String
     let huntName: String
     let game: String
@@ -146,6 +147,7 @@ private struct ShinyHuntRow: Codable {
         case id
         case userID = "user_id"
         case pokemonID = "pokemon_id"
+        case pokemonFormID = "pokemon_form_id"
         case pokemonName = "pokemon_name"
         case huntName = "hunt_name"
         case game
@@ -174,6 +176,7 @@ private struct ShinyHuntRow: Codable {
         id = persistedHunt.id
         self.userID = userID
         pokemonID = persistedHunt.pokemonID
+        pokemonFormID = persistedHunt.pokemonFormID
         pokemonName = persistedHunt.pokemonName
         huntName = persistedHunt.huntName
         game = persistedHunt.game.rawValue
@@ -211,6 +214,7 @@ private struct ShinyHuntRow: Codable {
         return ShinyHunt(
             id: id,
             pokemonID: pokemonID,
+            pokemonFormID: pokemonFormID,
             pokemonName: pokemonName,
             huntName: huntName,
             game: ShinyGame(rawValue: game) ?? .scarlet,

@@ -46,7 +46,7 @@ final class ShinyPokemonPickerViewModel: ObservableObject {
 
         do {
             let response = try await apiClient.fetchPokemonPage(limit: 1302, offset: 0)
-            pokemon = response.results.compactMap(PokemonListItem.init)
+            pokemon = PokemonListItem.makeListItems(from: response.results)
             errorMessage = nil
         } catch {
             errorMessage = "Pokemon could not be loaded. Check your connection and try again."

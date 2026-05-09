@@ -25,6 +25,10 @@ final class PokemonDetailViewModel: ObservableObject {
         pokemon.displayName
     }
 
+    var formattedPokemonNumber: String {
+        pokemon.formattedNumber
+    }
+
     var selectedGameDisplayName: String {
         selectedGame?.displayName ?? "Game"
     }
@@ -152,9 +156,9 @@ final class PokemonDetailViewModel: ObservableObject {
         }
 
         do {
-            species = try await apiClient.fetchPokemonSpecies(id: pokemon.id)
+            species = try await apiClient.fetchPokemonSpecies(id: pokemon.displayID)
         } catch {
-            AppDebugLog.log("Pokemon species load failed for \(pokemon.id): \(error.localizedDescription)")
+            AppDebugLog.log("Pokemon species load failed for \(pokemon.displayID): \(error.localizedDescription)")
             return
         }
 

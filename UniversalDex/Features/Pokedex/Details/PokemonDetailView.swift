@@ -101,7 +101,7 @@ struct PokemonDetailView: View {
             }
 
             detailSection("Profile") {
-                detailRow("Number", String(format: "%03d", detail.id))
+                detailRow("Number", viewModel.formattedPokemonNumber)
                 detailRow("Height", String(format: "%.1f m", Double(detail.height) / 10))
                 detailRow("Weight", String(format: "%.1f kg", Double(detail.weight) / 10))
                 detailRow("Base XP", detail.baseExperience.map { String($0) } ?? "Unknown")
@@ -309,7 +309,7 @@ struct PokemonDetailView: View {
             Text(detail.name.displayName)
                 .font(.title.bold())
 
-            Text(String(format: "%03d", detail.id))
+            Text(viewModel.formattedPokemonNumber)
                 .font(.subheadline.weight(.bold))
                 .monospacedDigit()
                 .foregroundStyle(.secondary)

@@ -53,7 +53,7 @@ enum PokedexGeneration: String, CaseIterable, Identifiable {
             return true
         }
 
-        return idRange.contains(pokemon.id)
+        return idRange.contains(pokemon.displayID)
     }
 
     private var idRange: ClosedRange<Int>? {
