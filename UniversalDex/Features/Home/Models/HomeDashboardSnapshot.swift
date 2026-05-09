@@ -8,12 +8,15 @@
 import Foundation
 
 struct HomeDashboardSnapshot {
-    struct FeaturedHunt {
+    struct FeaturedHunt: Identifiable {
         let id: ShinyHunt.ID
         let title: String
         let methodLabel: String
+        let encounters: Int
         let encountersText: String
+        let oddsDenominator: Int
         let oddsText: String
+        let todayEncounters: Int
         let todayEncountersText: String
         let paceHeadline: String
         let dailyEncounters: [ShinyEncounterDailyTotal]
@@ -46,8 +49,11 @@ struct HomeDashboardSnapshot {
             id: hunt.id,
             title: hunt.pokemonName,
             methodLabel: hunt.method.dashboardLabel,
+            encounters: hunt.encounters,
             encountersText: hunt.encounters.formatted(),
+            oddsDenominator: hunt.oddsDenominator,
             oddsText: hunt.oddsText,
+            todayEncounters: todayEncounters,
             todayEncountersText: todayEncounters > 0 ? "+\(todayEncounters.formatted()) today" : "0 today",
             paceHeadline: Self.paceHeadline(
                 todayEncounters: todayEncounters,
