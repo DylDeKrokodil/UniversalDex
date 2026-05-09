@@ -107,11 +107,11 @@ struct ShinyHuntDetailView: View {
                     .font(.title2.weight(.bold))
                     .multilineTextAlignment(.center)
 
-                HStack(spacing: 6) {
-                    Image(systemName: hunt.game.systemImageName)
-                        .font(.caption.weight(.semibold))
+                VStack(spacing: 2) {
+                    Text(hunt.game.displayName)
+                        .lineLimit(1)
 
-                    Text("\(hunt.game.displayName) - \(hunt.method.displayName)")
+                    Text(hunt.method.displayName)
                 }
                 .font(.subheadline)
                 .foregroundStyle(.secondary)

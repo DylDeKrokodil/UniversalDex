@@ -9,10 +9,25 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var authViewModel: AuthViewModel
+    @AppStorage(AppAppearanceOption.storageKey)
+    private var appearanceOption = AppAppearanceOption.automatic.rawValue
 
     var body: some View {
         NavigationStack {
             List {
+                Section {
+                    Picker("Mode", selection: appearanceSelection) {
+                        ForEach(AppAppearanceOption.allCases) { option in
+                            Text(option.title)
+                                .tag(option)
+                        }
+                    }
+                } header: {
+                    Text("Appearance")
+                } footer: {
+                    Text("Auto follows your device appearance.")
+                }
+
                 Section("Account") {
                     if let user = authViewModel.authenticatedUser {
                         VStack(alignment: .leading, spacing: 4) {
@@ -37,6 +52,13 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
         }
+    }
+
+    private var appearanceSelection: Binding<AppAppearanceOption> {
+        Binding(
+            get: { AppAppearanceOption(rawValue: appearanceOption) ?? .automatic },
+            set: { appearanceOption = $0.rawValue }
+        )
     }
 }
 

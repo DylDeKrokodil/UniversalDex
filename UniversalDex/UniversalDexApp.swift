@@ -9,9 +9,17 @@ import SwiftUI
 
 @main
 struct UniversalDexApp: App {
+    @AppStorage(AppAppearanceOption.storageKey)
+    private var appearanceOption = AppAppearanceOption.automatic.rawValue
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .preferredColorScheme(selectedAppearanceOption.colorScheme)
         }
+    }
+
+    private var selectedAppearanceOption: AppAppearanceOption {
+        AppAppearanceOption(rawValue: appearanceOption) ?? .automatic
     }
 }

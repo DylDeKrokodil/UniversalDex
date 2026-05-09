@@ -17,6 +17,8 @@ struct ShinyMetricView: View {
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
 
             Text(value)
                 .font(.subheadline.weight(.bold))

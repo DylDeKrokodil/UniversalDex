@@ -109,25 +109,29 @@ enum ShinyMethod: String, CaseIterable, Codable, Identifiable {
         case .masudaCharm:
             return game.supportsShinyCharm && game.generation >= 5
         case .pokeRadarChain40:
-            return [.diamondPearlPlatinum, .xy, .brilliantDiamondShiningPearl].contains(game)
+            return [
+                .diamond, .pearl, .platinum,
+                .x, .y,
+                .brilliantDiamond, .shiningPearl
+            ].contains(game)
         case .chainFishing:
-            return game == .xy || game == .omegaRubyAlphaSapphire
+            return [.x, .y, .omegaRuby, .alphaSapphire].contains(game)
         case .friendSafari:
-            return game == .xy
+            return game == .x || game == .y
         case .dexNav:
-            return game == .omegaRubyAlphaSapphire
+            return game == .omegaRuby || game == .alphaSapphire
         case .sosBattle:
-            return game == .sunMoon || game == .ultraSunUltraMoon
+            return [.sun, .moon, .ultraSun, .ultraMoon].contains(game)
         case .catchCombo31:
-            return game == .letsGo
+            return game == .letsGoPikachu || game == .letsGoEevee
         case .dynamaxAdventure:
-            return game == .swordShield
+            return game == .sword || game == .shield
         case .massOutbreak:
-            return game == .legendsArceus || game == .scarletViolet
+            return game == .legendsArceus || game == .scarlet || game == .violet
         case .massiveMassOutbreak:
             return game == .legendsArceus
         case .sandwichCharmOutbreak:
-            return game == .scarletViolet
+            return game == .scarlet || game == .violet
         case .customOdds:
             return true
         }
@@ -156,7 +160,7 @@ enum ShinyMethod: String, CaseIterable, Codable, Identifiable {
         case .dexNav:
             return 512
         case .sosBattle:
-            return game == .ultraSunUltraMoon ? 273 : 315
+            return game == .ultraSun || game == .ultraMoon ? 273 : 315
         case .catchCombo31:
             return 341
         case .dynamaxAdventure:
@@ -195,7 +199,7 @@ enum ShinyMethod: String, CaseIterable, Codable, Identifiable {
         case .dexNav:
             return "Approximate boosted DexNav hunting odds at high search levels."
         case .sosBattle:
-            return game == .ultraSunUltraMoon ? "Ultra Sun and Ultra Moon SOS chains can reach stronger boosted odds." : "Sun and Moon SOS chaining odds at the boosted chain stage."
+            return game == .ultraSun || game == .ultraMoon ? "Ultra Sun and Ultra Moon SOS chains can reach stronger boosted odds." : "Sun and Moon SOS chaining odds at the boosted chain stage."
         case .catchCombo31:
             return "Let's Go catch combo odds at 31 or higher without extra lure/charm modifiers."
         case .dynamaxAdventure:

@@ -327,7 +327,7 @@ struct HomeView_Previews: PreviewProvider {
         let activeHunt = ShinyHunt(
             pokemonID: 4,
             pokemonName: "Charmander",
-            game: .scarletViolet,
+            game: .scarlet,
             method: .masuda,
             oddsDenominator: 512,
             encounters: dailyDeltas.reduce(0, +),
@@ -337,7 +337,7 @@ struct HomeView_Previews: PreviewProvider {
         let caughtHunt = ShinyHunt(
             pokemonID: 25,
             pokemonName: "Pikachu",
-            game: .letsGo,
+            game: .letsGoPikachu,
             method: .catchCombo31,
             oddsDenominator: 341,
             encounters: 188,

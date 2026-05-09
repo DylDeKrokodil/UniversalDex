@@ -8,22 +8,59 @@
 import Foundation
 
 enum ShinyGame: String, CaseIterable, Codable, Identifiable {
-    case goldSilverCrystal
-    case rubySapphireEmerald
-    case fireRedLeafGreen
-    case diamondPearlPlatinum
-    case heartGoldSoulSilver
-    case blackWhite
-    case black2White2
-    case xy
-    case omegaRubyAlphaSapphire
-    case sunMoon
-    case ultraSunUltraMoon
-    case letsGo
-    case swordShield
-    case brilliantDiamondShiningPearl
+    case gold
+    case silver
+    case crystal
+    case ruby
+    case sapphire
+    case emerald
+    case fireRed
+    case leafGreen
+    case diamond
+    case pearl
+    case platinum
+    case heartGold
+    case soulSilver
+    case black
+    case white
+    case black2
+    case white2
+    case x
+    case y
+    case omegaRuby
+    case alphaSapphire
+    case sun
+    case moon
+    case ultraSun
+    case ultraMoon
+    case letsGoPikachu
+    case letsGoEevee
+    case sword
+    case shield
+    case brilliantDiamond
+    case shiningPearl
     case legendsArceus
-    case scarletViolet
+    case scarlet
+    case violet
+
+    private enum GameFamily {
+        case goldSilverCrystal
+        case rubySapphireEmerald
+        case fireRedLeafGreen
+        case diamondPearlPlatinum
+        case heartGoldSoulSilver
+        case blackWhite
+        case black2White2
+        case xy
+        case omegaRubyAlphaSapphire
+        case sunMoon
+        case ultraSunUltraMoon
+        case letsGo
+        case swordShield
+        case brilliantDiamondShiningPearl
+        case legendsArceus
+        case scarletViolet
+    }
 
     var id: Self {
         self
@@ -31,43 +68,79 @@ enum ShinyGame: String, CaseIterable, Codable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .goldSilverCrystal:
-            return "Gold, Silver, Crystal"
-        case .rubySapphireEmerald:
-            return "Ruby, Sapphire, Emerald"
-        case .fireRedLeafGreen:
-            return "FireRed, LeafGreen"
-        case .diamondPearlPlatinum:
-            return "Diamond, Pearl, Platinum"
-        case .heartGoldSoulSilver:
-            return "HeartGold, SoulSilver"
-        case .blackWhite:
-            return "Black, White"
-        case .black2White2:
-            return "Black 2, White 2"
-        case .xy:
-            return "X, Y"
-        case .omegaRubyAlphaSapphire:
-            return "Omega Ruby, Alpha Sapphire"
-        case .sunMoon:
-            return "Sun, Moon"
-        case .ultraSunUltraMoon:
-            return "Ultra Sun, Ultra Moon"
-        case .letsGo:
-            return "Let's Go"
-        case .swordShield:
-            return "Sword, Shield"
-        case .brilliantDiamondShiningPearl:
-            return "Brilliant Diamond, Shining Pearl"
+        case .gold:
+            return "Gold"
+        case .silver:
+            return "Silver"
+        case .crystal:
+            return "Crystal"
+        case .ruby:
+            return "Ruby"
+        case .sapphire:
+            return "Sapphire"
+        case .emerald:
+            return "Emerald"
+        case .fireRed:
+            return "FireRed"
+        case .leafGreen:
+            return "LeafGreen"
+        case .diamond:
+            return "Diamond"
+        case .pearl:
+            return "Pearl"
+        case .platinum:
+            return "Platinum"
+        case .heartGold:
+            return "HeartGold"
+        case .soulSilver:
+            return "SoulSilver"
+        case .black:
+            return "Black"
+        case .white:
+            return "White"
+        case .black2:
+            return "Black 2"
+        case .white2:
+            return "White 2"
+        case .x:
+            return "X"
+        case .y:
+            return "Y"
+        case .omegaRuby:
+            return "Omega Ruby"
+        case .alphaSapphire:
+            return "Alpha Sapphire"
+        case .sun:
+            return "Sun"
+        case .moon:
+            return "Moon"
+        case .ultraSun:
+            return "Ultra Sun"
+        case .ultraMoon:
+            return "Ultra Moon"
+        case .letsGoPikachu:
+            return "Let's Go, Pikachu!"
+        case .letsGoEevee:
+            return "Let's Go, Eevee!"
+        case .sword:
+            return "Sword"
+        case .shield:
+            return "Shield"
+        case .brilliantDiamond:
+            return "Brilliant Diamond"
+        case .shiningPearl:
+            return "Shining Pearl"
         case .legendsArceus:
             return "Legends: Arceus"
-        case .scarletViolet:
-            return "Scarlet, Violet"
+        case .scarlet:
+            return "Scarlet"
+        case .violet:
+            return "Violet"
         }
     }
 
     var regionName: String {
-        switch self {
+        switch family {
         case .goldSilverCrystal, .heartGoldSoulSilver:
             return "Johto"
         case .rubySapphireEmerald, .omegaRubyAlphaSapphire:
@@ -90,7 +163,7 @@ enum ShinyGame: String, CaseIterable, Codable, Identifiable {
     }
 
     var systemImageName: String {
-        switch self {
+        switch family {
         case .goldSilverCrystal:
             return "sparkle"
         case .rubySapphireEmerald:
@@ -127,7 +200,7 @@ enum ShinyGame: String, CaseIterable, Codable, Identifiable {
     }
 
     var baseOddsDenominator: Int {
-        switch self {
+        switch family {
         case .goldSilverCrystal,
              .rubySapphireEmerald,
              .fireRedLeafGreen,
@@ -150,7 +223,7 @@ enum ShinyGame: String, CaseIterable, Codable, Identifiable {
     }
 
     var supportsShinyCharm: Bool {
-        switch self {
+        switch family {
         case .black2White2,
              .xy,
              .omegaRubyAlphaSapphire,
@@ -168,7 +241,7 @@ enum ShinyGame: String, CaseIterable, Codable, Identifiable {
     }
 
     var generation: Int {
-        switch self {
+        switch family {
         case .goldSilverCrystal:
             return 2
         case .rubySapphireEmerald, .fireRedLeafGreen:
@@ -192,8 +265,45 @@ enum ShinyGame: String, CaseIterable, Codable, Identifiable {
         availablePokemonIDRange.contains(pokemon.id)
     }
 
-    private var availablePokemonIDRange: ClosedRange<Int> {
+    private var family: GameFamily {
         switch self {
+        case .gold, .silver, .crystal:
+            return .goldSilverCrystal
+        case .ruby, .sapphire, .emerald:
+            return .rubySapphireEmerald
+        case .fireRed, .leafGreen:
+            return .fireRedLeafGreen
+        case .diamond, .pearl, .platinum:
+            return .diamondPearlPlatinum
+        case .heartGold, .soulSilver:
+            return .heartGoldSoulSilver
+        case .black, .white:
+            return .blackWhite
+        case .black2, .white2:
+            return .black2White2
+        case .x, .y:
+            return .xy
+        case .omegaRuby, .alphaSapphire:
+            return .omegaRubyAlphaSapphire
+        case .sun, .moon:
+            return .sunMoon
+        case .ultraSun, .ultraMoon:
+            return .ultraSunUltraMoon
+        case .letsGoPikachu, .letsGoEevee:
+            return .letsGo
+        case .sword, .shield:
+            return .swordShield
+        case .brilliantDiamond, .shiningPearl:
+            return .brilliantDiamondShiningPearl
+        case .legendsArceus:
+            return .legendsArceus
+        case .scarlet, .violet:
+            return .scarletViolet
+        }
+    }
+
+    private var availablePokemonIDRange: ClosedRange<Int> {
+        switch family {
         case .fireRedLeafGreen, .letsGo:
             return 1...151
         case .goldSilverCrystal:

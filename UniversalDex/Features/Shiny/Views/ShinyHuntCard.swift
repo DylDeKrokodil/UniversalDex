@@ -30,11 +30,11 @@ struct ShinyHuntCard: View {
                         }
                     }
 
-                    HStack(spacing: 6) {
-                        Image(systemName: hunt.game.systemImageName)
-                            .font(.caption.weight(.semibold))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(hunt.game.displayName)
+                            .lineLimit(1)
 
-                        Text("\(hunt.game.displayName) - \(hunt.method.displayName)")
+                        Text(hunt.method.displayName)
                             .lineLimit(2)
                     }
                     .font(.subheadline)
@@ -49,17 +49,12 @@ struct ShinyHuntCard: View {
                 }
 
                 Spacer(minLength: 0)
-
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.tertiary)
-                    .padding(.top, 4)
             }
 
             HStack(spacing: 12) {
-                ShinyMetricView(title: "Encounters", value: hunt.encounters.formatted())
+                ShinyMetricView(title: "Count", value: hunt.encounters.formatted())
                 ShinyMetricView(title: "Odds", value: hunt.oddsText)
-                ShinyMetricView(title: "Probability", value: hunt.cumulativeProbabilityText)
+                ShinyMetricView(title: "Chance", value: hunt.cumulativeProbabilityText)
             }
 
             ProgressView(value: hunt.encounterProgress)
@@ -103,7 +98,7 @@ struct ShinyHuntCard_Previews: PreviewProvider {
             hunt: ShinyHunt(
                 pokemonID: 25,
                 pokemonName: "Pikachu",
-                game: .scarletViolet,
+                game: .scarlet,
                 method: .sandwichCharmOutbreak,
                 oddsDenominator: 512,
                 encounters: 128

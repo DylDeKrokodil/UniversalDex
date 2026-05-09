@@ -10,13 +10,9 @@ import Foundation
 
 @MainActor
 final class ShinyHuntViewModel: ObservableObject {
-    @Published private(set) var hunts: [ShinyHunt] = [] {
-        didSet {
-            saveHunts()
-        }
-    }
+    @Published private(set) var hunts: [ShinyHunt] = []
 
-    private let storageKey = "universalDex.shinyHunts"
+    private let store: any ShinyHuntStore
 
     var activeHunts: [ShinyHunt] {
         hunts
@@ -31,15 +27,29 @@ final class ShinyHuntViewModel: ObservableObject {
     }
 
     init() {
-        loadHunts()
+        store = LocalShinyHuntStore()
+
+        Task {
+            await loadHunts()
+        }
+    }
+
+    init(store: any ShinyHuntStore) {
+        self.store = store
+
+        Task {
+            await loadHunts()
+        }
     }
 
     init(previewHunts: [ShinyHunt]) {
+        store = LocalShinyHuntStore()
         hunts = previewHunts
     }
 
     func add(_ hunt: ShinyHunt) {
         hunts.insert(hunt, at: 0)
+        sync(hunt)
     }
 
     func incrementEncounters(for hunt: ShinyHunt) {
@@ -86,6 +96,13 @@ final class ShinyHuntViewModel: ObservableObject {
 
     func delete(_ hunt: ShinyHunt) {
         hunts.removeAll { $0.id == hunt.id }
+        Task {
+            do {
+                try await store.delete(hunt)
+            } catch {
+                AppDebugLog.log("Could not delete shiny hunt: \(error.localizedDescription)")
+            }
+        }
     }
 
     private func update(_ hunt: ShinyHunt, mutation: (inout ShinyHunt) -> Void) {
@@ -94,29 +111,27 @@ final class ShinyHuntViewModel: ObservableObject {
         }
 
         mutation(&hunts[index])
+        sync(hunts[index])
     }
 
-    private func loadHunts() {
-        guard let data = UserDefaults.standard.data(forKey: storageKey) else {
-            return
-        }
-
+    private func loadHunts() async {
         do {
-            hunts = try JSONDecoder()
-                .decode([ShinyHunt].self, from: data)
+            hunts = try await store
+                .fetchHunts()
                 .map { $0.migratedForEncounterHistory() }
         } catch {
-            AppDebugLog.log("Could not decode shiny hunts: \(error.localizedDescription)")
+            AppDebugLog.log("Could not load shiny hunts: \(error.localizedDescription)")
             hunts = []
         }
     }
 
-    private func saveHunts() {
-        do {
-            let data = try JSONEncoder().encode(hunts)
-            UserDefaults.standard.set(data, forKey: storageKey)
-        } catch {
-            AppDebugLog.log("Could not save shiny hunts: \(error.localizedDescription)")
+    private func sync(_ hunt: ShinyHunt) {
+        Task {
+            do {
+                try await store.upsert(hunt)
+            } catch {
+                AppDebugLog.log("Could not save shiny hunt: \(error.localizedDescription)")
+            }
         }
     }
 }

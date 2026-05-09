@@ -22,15 +22,7 @@ struct SupabaseAuthService: AuthService {
             return
         }
 
-        self.client = SupabaseClient(
-            supabaseURL: configuration.url,
-            supabaseKey: configuration.anonKey,
-            options: .init(
-                auth: .init(
-                    emitLocalSessionAsInitialSession: true
-                )
-            )
-        )
+        self.client = SupabaseClientFactory.makeClient(configuration: configuration)
         self.availability = .ready
     }
 

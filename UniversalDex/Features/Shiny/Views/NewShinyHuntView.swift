@@ -11,7 +11,7 @@ struct NewShinyHuntView: View {
     @Environment(\.dismiss) private var dismiss
 
     @StateObject private var pokemonPickerViewModel = ShinyPokemonPickerViewModel()
-    @State private var selectedGame = ShinyGame.scarletViolet
+    @State private var selectedGame = ShinyGame.scarlet
     @State private var selectedPokemon: PokemonListItem?
     @State private var path: [NewShinyHuntStep] = []
 
