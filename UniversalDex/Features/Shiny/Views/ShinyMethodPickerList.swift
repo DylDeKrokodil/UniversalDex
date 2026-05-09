@@ -8,9 +8,12 @@
 import SwiftUI
 
 struct ShinyMethodPickerList: View {
+    @Environment(\.dismiss) private var dismiss
+
     let selectedGame: ShinyGame
     let selectedPokemon: PokemonListItem?
     let methods: [ShinyMethod]
+    var hasShinyCharm = false
     let selectMethod: (ShinyMethod) -> Void
 
     var body: some View {
@@ -25,10 +28,11 @@ struct ShinyMethodPickerList: View {
                 ForEach(methods) { method in
                     Button {
                         selectMethod(method)
+                        dismiss()
                     } label: {
                         ShinyMethodPickerRow(
                             method: method,
-                            oddsText: method.oddsText(in: selectedGame),
+                            oddsText: method.oddsText(in: selectedGame, hasShinyCharm: hasShinyCharm),
                             note: method.note(in: selectedGame)
                         )
                     }

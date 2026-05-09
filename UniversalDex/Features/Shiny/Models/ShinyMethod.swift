@@ -176,8 +176,37 @@ enum ShinyMethod: String, CaseIterable, Codable, Identifiable {
         }
     }
 
+    func oddsDenominator(in game: ShinyGame, hasShinyCharm: Bool) -> Int {
+        guard hasShinyCharm, game.supportsShinyCharm else {
+            return oddsDenominator(in: game)
+        }
+
+        switch self {
+        case .randomEncounter:
+            return game.baseOddsDenominator == 8192 ? 2731 : 1365
+        case .masuda:
+            return game.generation == 5 ? 1024 : 512
+        case .dynamaxAdventure:
+            return 100
+        case .massOutbreak:
+            if game == .legendsArceus {
+                return 137
+            }
+
+            return game == .scarlet || game == .violet ? 819 : oddsDenominator(in: game)
+        case .massiveMassOutbreak:
+            return game == .legendsArceus ? 180 : oddsDenominator(in: game)
+        default:
+            return oddsDenominator(in: game)
+        }
+    }
+
     func oddsText(in game: ShinyGame) -> String {
         "1/\(oddsDenominator(in: game).formatted())"
+    }
+
+    func oddsText(in game: ShinyGame, hasShinyCharm: Bool) -> String {
+        "1/\(oddsDenominator(in: game, hasShinyCharm: hasShinyCharm).formatted())"
     }
 
     func note(in game: ShinyGame) -> String {

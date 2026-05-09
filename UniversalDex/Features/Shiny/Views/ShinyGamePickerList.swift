@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ShinyGamePickerList: View {
+    @Environment(\.dismiss) private var dismiss
+
     let games: [ShinyGame]
     let selectGame: (ShinyGame) -> Void
 
@@ -25,6 +27,7 @@ struct ShinyGamePickerList: View {
                 ForEach(games) { game in
                     Button {
                         selectGame(game)
+                        dismiss()
                     } label: {
                         ShinyGamePickerRow(game: game)
                     }

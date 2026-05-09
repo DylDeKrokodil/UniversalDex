@@ -58,7 +58,10 @@ final class ShinyHuntViewModel: ObservableObject {
                 return
             }
 
-            editableHunt.recordEncounterChange(delta: 1, kind: .increment)
+            editableHunt.recordEncounterChange(delta: editableHunt.encounterIncrement, kind: .increment)
+            if editableHunt.trackingMetric.tracksTime {
+                editableHunt.startTimer()
+            }
         }
     }
 
@@ -68,7 +71,10 @@ final class ShinyHuntViewModel: ObservableObject {
                 return
             }
 
-            editableHunt.recordEncounterChange(delta: -1, kind: .decrement)
+            editableHunt.recordEncounterChange(
+                delta: -min(editableHunt.encounterIncrement, editableHunt.encounters),
+                kind: .decrement
+            )
         }
     }
 
@@ -82,8 +88,37 @@ final class ShinyHuntViewModel: ObservableObject {
 
     func markCaught(_ hunt: ShinyHunt) {
         update(hunt) { editableHunt in
+            editableHunt.stopTimer()
             editableHunt.isCaught = true
             editableHunt.caughtAt = Date()
+        }
+    }
+
+    func startTimer(for hunt: ShinyHunt) {
+        update(hunt) { editableHunt in
+            guard !editableHunt.isCaught else {
+                return
+            }
+
+            editableHunt.startTimer()
+        }
+    }
+
+    func stopTimer(for hunt: ShinyHunt) {
+        update(hunt) { editableHunt in
+            editableHunt.stopTimer()
+        }
+    }
+
+    func complete(_ hunt: ShinyHunt, completion: ShinyHunt.Completion) {
+        update(hunt) { editableHunt in
+            editableHunt.stopTimer(at: completion.caughtAt)
+            editableHunt.encounters = max(0, completion.encounters)
+            editableHunt.elapsedTime = max(0, completion.elapsedTime)
+            editableHunt.timerStartedAt = nil
+            editableHunt.isCaught = true
+            editableHunt.caughtAt = completion.caughtAt
+            editableHunt.completion = completion
         }
     }
 
@@ -91,6 +126,7 @@ final class ShinyHuntViewModel: ObservableObject {
         update(hunt) { editableHunt in
             editableHunt.isCaught = false
             editableHunt.caughtAt = nil
+            editableHunt.completion = nil
         }
     }
 

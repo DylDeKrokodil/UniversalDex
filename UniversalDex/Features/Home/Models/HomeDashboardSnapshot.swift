@@ -47,7 +47,7 @@ struct HomeDashboardSnapshot {
 
         featuredHunt = FeaturedHunt(
             id: hunt.id,
-            title: hunt.pokemonName,
+            title: hunt.displayTitle,
             methodLabel: hunt.method.dashboardLabel,
             encounters: hunt.encounters,
             encountersText: hunt.encounters.formatted(),

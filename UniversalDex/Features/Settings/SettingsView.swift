@@ -30,6 +30,14 @@ struct SettingsView: View {
                     Text("Auto follows your device appearance.")
                 }
 
+                Section("About") {
+                    NavigationLink {
+                        LegalCreditsView()
+                    } label: {
+                        Label("Legal & Credits", systemImage: "info.circle")
+                    }
+                }
+
                 Section("Account") {
                     if let user = authViewModel.authenticatedUser {
                         VStack(alignment: .leading, spacing: 4) {

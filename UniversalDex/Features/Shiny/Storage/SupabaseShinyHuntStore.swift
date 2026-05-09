@@ -122,26 +122,50 @@ private struct ShinyHuntRow: Codable {
     let userID: UUID
     let pokemonID: Int?
     let pokemonName: String
+    let huntName: String
     let game: String
     let method: String
+    let trackingMetric: String
+    let hasShinyCharm: Bool
     let oddsDenominator: Int
     let encounters: Int
+    let encounterIncrement: Int
+    let startedAt: Date?
+    let elapsedTime: TimeInterval
+    let timerStartedAt: Date?
     let isCaught: Bool
     let createdAt: Date
     let caughtAt: Date?
+    let completionNickname: String?
+    let completionBall: String?
+    let completionEncounters: Int?
+    let completionElapsedTime: TimeInterval?
+    let completionIsFailed: Bool
 
     enum CodingKeys: String, CodingKey {
         case id
         case userID = "user_id"
         case pokemonID = "pokemon_id"
         case pokemonName = "pokemon_name"
+        case huntName = "hunt_name"
         case game
         case method
+        case trackingMetric = "tracking_metric"
+        case hasShinyCharm = "has_shiny_charm"
         case oddsDenominator = "odds_denominator"
         case encounters
+        case encounterIncrement = "encounter_increment"
+        case startedAt = "started_at"
+        case elapsedTime = "elapsed_time"
+        case timerStartedAt = "timer_started_at"
         case isCaught = "is_caught"
         case createdAt = "created_at"
         case caughtAt = "caught_at"
+        case completionNickname = "completion_nickname"
+        case completionBall = "completion_ball"
+        case completionEncounters = "completion_encounters"
+        case completionElapsedTime = "completion_elapsed_time"
+        case completionIsFailed = "completion_is_failed"
     }
 
     init(hunt: ShinyHunt, userID: UUID) {
@@ -149,28 +173,59 @@ private struct ShinyHuntRow: Codable {
         self.userID = userID
         pokemonID = hunt.pokemonID
         pokemonName = hunt.pokemonName
+        huntName = hunt.huntName
         game = hunt.game.rawValue
         method = hunt.method.rawValue
+        trackingMetric = hunt.trackingMetric.rawValue
+        hasShinyCharm = hunt.hasShinyCharm
         oddsDenominator = hunt.oddsDenominator
         encounters = hunt.encounters
+        encounterIncrement = hunt.encounterIncrement
+        startedAt = hunt.startedAt
+        elapsedTime = hunt.elapsedTime
+        timerStartedAt = hunt.timerStartedAt
         isCaught = hunt.isCaught
         createdAt = hunt.createdAt
         caughtAt = hunt.caughtAt
+        completionNickname = hunt.completion?.nickname
+        completionBall = hunt.completion?.ball.rawValue
+        completionEncounters = hunt.completion?.encounters
+        completionElapsedTime = hunt.completion?.elapsedTime
+        completionIsFailed = hunt.completion?.isFailed ?? false
     }
 
     func asHunt(encounterEvents: [ShinyEncounterEvent]) -> ShinyHunt {
-        ShinyHunt(
+        let completion = completionBall.map { ball in
+            ShinyHunt.Completion(
+                nickname: completionNickname ?? "",
+                ball: ShinyCaughtBall(rawValue: ball) ?? .poke,
+                encounters: completionEncounters ?? encounters,
+                elapsedTime: completionElapsedTime ?? elapsedTime,
+                caughtAt: caughtAt ?? Date(),
+                isFailed: completionIsFailed
+            )
+        }
+
+        return ShinyHunt(
             id: id,
             pokemonID: pokemonID,
             pokemonName: pokemonName,
+            huntName: huntName,
             game: ShinyGame(rawValue: game) ?? .scarlet,
             method: ShinyMethod(rawValue: method) ?? .randomEncounter,
+            trackingMetric: ShinyTrackingMetric(rawValue: trackingMetric) ?? .encounters,
+            hasShinyCharm: hasShinyCharm,
             oddsDenominator: oddsDenominator,
             encounters: encounters,
+            encounterIncrement: encounterIncrement,
             encounterEvents: encounterEvents,
+            startedAt: startedAt,
+            elapsedTime: elapsedTime,
+            timerStartedAt: timerStartedAt,
             isCaught: isCaught,
             createdAt: createdAt,
-            caughtAt: caughtAt
+            caughtAt: caughtAt,
+            completion: completion
         )
     }
 }

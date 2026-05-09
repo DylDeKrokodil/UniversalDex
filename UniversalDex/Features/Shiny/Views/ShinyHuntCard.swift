@@ -17,20 +17,25 @@ struct ShinyHuntCard: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 8) {
-                        Text(hunt.pokemonName)
+                        Text(hunt.displayTitle)
                             .font(.headline)
                             .lineLimit(1)
                             .minimumScaleFactor(0.75)
 
                         if hunt.isCaught {
-                            Label("Caught", systemImage: "checkmark.seal.fill")
+                            Label(hunt.isFailed ? "Failed" : "Added", systemImage: hunt.isFailed ? "exclamationmark.triangle.fill" : "checkmark.seal.fill")
                                 .font(.caption.weight(.semibold))
-                                .foregroundStyle(.green)
+                                .foregroundStyle(hunt.isFailed ? .orange : .green)
                                 .labelStyle(.titleAndIcon)
                         }
                     }
 
                     VStack(alignment: .leading, spacing: 2) {
+                        if hunt.displayTitle != hunt.pokemonName {
+                            Text(hunt.pokemonName)
+                                .lineLimit(1)
+                        }
+
                         Text(hunt.game.displayName)
                             .lineLimit(1)
 
@@ -52,16 +57,32 @@ struct ShinyHuntCard: View {
             }
 
             HStack(spacing: 12) {
-                ShinyMetricView(title: "Count", value: hunt.encounters.formatted())
+                if hunt.trackingMetric.tracksEncounters {
+                    ShinyMetricView(title: "Count", value: hunt.encounters.formatted())
+                }
+
+                if hunt.trackingMetric.tracksTime {
+                    ShinyMetricView(title: "Time", value: hunt.formattedElapsedTime)
+                }
+
                 ShinyMetricView(title: "Odds", value: hunt.oddsText)
-                ShinyMetricView(title: "Chance", value: hunt.cumulativeProbabilityText)
             }
 
-            ProgressView(value: hunt.encounterProgress)
-                .tint(hunt.isCaught ? .green : AppTheme.accentColor)
+            if hunt.trackingMetric.tracksEncounters && hunt.trackingMetric.tracksTime {
+                ShinyMetricView(title: "Encounters/hour", value: hunt.formattedEncountersPerHour)
+            }
 
-            if hunt.isCaught, let caughtAt = hunt.caughtAt {
-                Text("Caught after \(hunt.encounters.formatted()) encounters on \(caughtAt.formatted(date: .abbreviated, time: .omitted)).")
+            if hunt.trackingMetric.tracksEncounters {
+                ProgressView(value: hunt.encounterProgress)
+                    .tint(hunt.isCaught ? (hunt.isFailed ? .orange : .green) : AppTheme.accentColor)
+            }
+
+            if let completion = hunt.completion {
+                Text(cardCompletionSummary(completion, for: hunt))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            } else if hunt.startedAt == nil {
+                Text("Not started yet.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             } else if hunt.encounters >= hunt.oddsDenominator {
@@ -89,6 +110,22 @@ struct ShinyHuntCard: View {
             }
         }
         .frame(width: 86, height: 86)
+    }
+
+    private func cardCompletionSummary(_ completion: ShinyHunt.Completion, for hunt: ShinyHunt) -> String {
+        let status = completion.isFailed ? "Failed" : "Added"
+        let dateText = completion.caughtAt.formatted(date: .abbreviated, time: .omitted)
+        let resultText: String
+
+        if hunt.trackingMetric.tracksEncounters && hunt.trackingMetric.tracksTime {
+            resultText = "\(completion.encounters.formatted()) encounters and \(ShinyHunt.formattedDuration(completion.elapsedTime))"
+        } else if hunt.trackingMetric.tracksTime {
+            resultText = ShinyHunt.formattedDuration(completion.elapsedTime)
+        } else {
+            resultText = "\(completion.encounters.formatted()) encounters"
+        }
+
+        return "\(status) after \(resultText) on \(dateText)."
     }
 }
 

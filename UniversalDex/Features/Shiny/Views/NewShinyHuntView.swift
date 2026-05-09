@@ -11,9 +11,15 @@ struct NewShinyHuntView: View {
     @Environment(\.dismiss) private var dismiss
 
     @StateObject private var pokemonPickerViewModel = ShinyPokemonPickerViewModel()
+    @FocusState private var focusedField: Field?
+    @State private var huntName = ""
     @State private var selectedGame = ShinyGame.scarlet
+    @State private var selectedMethod = ShinyMethod.randomEncounter
     @State private var selectedPokemon: PokemonListItem?
-    @State private var path: [NewShinyHuntStep] = []
+    @State private var hasShinyCharm = false
+    @State private var trackingMetric = ShinyTrackingMetric.encounters
+    @State private var startingEncounterText = "0"
+    @State private var encounterIncrementText = "1"
 
     let addAction: (ShinyHunt) -> Void
 
@@ -21,66 +27,211 @@ struct NewShinyHuntView: View {
         pokemonPickerViewModel.filteredPokemon(for: selectedGame)
     }
 
+    private var filteredPokemon: [PokemonListItem] {
+        Array(availablePokemon.prefix(24))
+    }
+
     private var availableMethods: [ShinyMethod] {
         ShinyMethod.allCases.filter { method in
-            method != .customOdds && method.isAvailable(in: selectedGame)
+            ![.shinyCharm, .masudaCharm].contains(method) && method.isAvailable(in: selectedGame)
         }
     }
 
+    private var oddsDenominator: Int {
+        selectedMethod.oddsDenominator(in: selectedGame, hasShinyCharm: hasShinyCharm)
+    }
+
+    private var canCreateHunt: Bool {
+        selectedPokemon != nil && !huntName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private enum Field: Hashable {
+        case huntName
+        case targetPokemon
+        case startingEncounter
+        case encounterIncrement
+    }
+
     var body: some View {
-        NavigationStack(path: $path) {
-            ShinyGamePickerList { game in
-                handleGameSelection(game)
-            }
-            .navigationTitle("Select Game")
-            .navigationDestination(for: NewShinyHuntStep.self) { step in
-                switch step {
-                case .pokemon:
-                    ShinyPokemonPickerList(
-                        selectedGame: selectedGame,
-                        searchText: $pokemonPickerViewModel.searchText,
-                        pokemon: availablePokemon,
-                        isLoading: pokemonPickerViewModel.isLoading,
-                        errorMessage: pokemonPickerViewModel.errorMessage
-                    ) { pokemon in
-                        handlePokemonSelection(pokemon)
+        NavigationStack {
+            Form {
+                Section("Hunt") {
+                    TextField("Hunt name", text: $huntName)
+                        .textInputAutocapitalization(.words)
+                        .focused($focusedField, equals: .huntName)
+
+                    targetPokemonPicker
+                }
+
+                Section("Setup") {
+                    NavigationLink {
+                        ShinyGamePickerList { game in
+                            selectGame(game)
+                        }
+                        .navigationTitle("Select Game")
+                    } label: {
+                        LabeledContent("Game", value: selectedGame.displayName)
                     }
-                case .method:
-                    ShinyMethodPickerList(
-                        selectedGame: selectedGame,
-                        selectedPokemon: selectedPokemon,
-                        methods: availableMethods
-                    ) { method in
-                        createHunt(with: method)
+
+                    NavigationLink {
+                        ShinyMethodPickerList(
+                            selectedGame: selectedGame,
+                            selectedPokemon: selectedPokemon,
+                            methods: availableMethods,
+                            hasShinyCharm: hasShinyCharm
+                        ) { method in
+                            selectedMethod = method
+                        }
+                    } label: {
+                        LabeledContent("Method", value: selectedMethod.displayName)
                     }
+
+                    if selectedGame.supportsShinyCharm {
+                        Toggle("Shiny Charm", isOn: $hasShinyCharm)
+                    }
+
+                    LabeledContent("Odds", value: "1/\(oddsDenominator.formatted())")
+                }
+
+                Section {
+                    Picker("Tracking metric", selection: $trackingMetric) {
+                        ForEach(ShinyTrackingMetric.allCases) { metric in
+                            Text(metric.displayName).tag(metric)
+                        }
+                    }
+
+                    if trackingMetric.tracksEncounters {
+                        TextField("Starting encounter", text: $startingEncounterText)
+                            .keyboardType(.numberPad)
+                            .focused($focusedField, equals: .startingEncounter)
+
+                        TextField("Increment by", text: $encounterIncrementText)
+                            .keyboardType(.numberPad)
+                            .focused($focusedField, equals: .encounterIncrement)
+                    }
+                } header: {
+                    Text("Tracking")
+                } footer: {
+                    Text("The hunt timer starts on the first encounter or when you start time tracking.")
                 }
             }
+            .navigationTitle("New Hunt")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         dismiss()
                     }
                 }
+
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Create") {
+                        createHunt()
+                    }
+                    .disabled(!canCreateHunt)
+                }
+
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+
+                    Button("Done") {
+                        focusedField = nil
+                    }
+                }
             }
+            .scrollDismissesKeyboard(.interactively)
             .task {
                 await pokemonPickerViewModel.loadPokemonIfNeeded()
+            }
+            .onChange(of: pokemonPickerViewModel.searchText) { _, newValue in
+                if selectedPokemon?.displayName != newValue {
+                    selectedPokemon = nil
+                }
+            }
+            .onChange(of: startingEncounterText) { _, newValue in
+                startingEncounterText = sanitizedNumberText(newValue, fallback: "0")
+            }
+            .onChange(of: encounterIncrementText) { _, newValue in
+                encounterIncrementText = sanitizedNumberText(newValue, fallback: "1")
+            }
+            .onChange(of: trackingMetric) { _, newMetric in
+                if !newMetric.tracksEncounters {
+                    startingEncounterText = "0"
+                    encounterIncrementText = "1"
+                }
             }
         }
     }
 
-    private func handleGameSelection(_ game: ShinyGame) {
+    private var targetPokemonPicker: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            TextField("Target Pokemon", text: $pokemonPickerViewModel.searchText)
+                .textInputAutocapitalization(.words)
+                .focused($focusedField, equals: .targetPokemon)
+
+            if let selectedPokemon {
+                selectedPokemonRow(selectedPokemon)
+            } else if pokemonPickerViewModel.isLoading {
+                ProgressView("Loading Pokemon...")
+                    .font(.footnote)
+            } else if let errorMessage = pokemonPickerViewModel.errorMessage {
+                Text(errorMessage)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            } else if !pokemonPickerViewModel.searchText.isEmpty {
+                ForEach(filteredPokemon) { pokemon in
+                    Button {
+                        selectPokemon(pokemon)
+                    } label: {
+                        ShinyPokemonPickerRow(pokemon: pokemon)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    private func selectedPokemonRow(_ pokemon: PokemonListItem) -> some View {
+        HStack {
+            ShinyPokemonPickerRow(pokemon: pokemon, showsChevron: false)
+
+            Button {
+                selectedPokemon = nil
+                pokemonPickerViewModel.searchText = ""
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Clear target Pokemon")
+        }
+    }
+
+    private func selectGame(_ game: ShinyGame) {
         selectedGame = game
-        selectedPokemon = nil
-        pokemonPickerViewModel.searchText = ""
-        path.append(.pokemon)
+        if !selectedGame.supportsShinyCharm {
+            hasShinyCharm = false
+        }
+
+        if let selectedPokemon, !selectedGame.containsAvailablePokemon(selectedPokemon) {
+            self.selectedPokemon = nil
+            pokemonPickerViewModel.searchText = ""
+        }
+
+        if !selectedMethod.isAvailable(in: selectedGame) {
+            selectedMethod = availableMethods.first ?? .randomEncounter
+        }
     }
 
-    private func handlePokemonSelection(_ pokemon: PokemonListItem) {
+    private func selectPokemon(_ pokemon: PokemonListItem) {
         selectedPokemon = pokemon
-        path.append(.method)
+        pokemonPickerViewModel.searchText = pokemon.displayName
+        if huntName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            huntName = "\(pokemon.displayName) hunt"
+        }
     }
 
-    private func createHunt(with method: ShinyMethod) {
+    private func createHunt() {
         guard let selectedPokemon else {
             return
         }
@@ -89,19 +240,29 @@ struct NewShinyHuntView: View {
             ShinyHunt(
                 pokemonID: selectedPokemon.id,
                 pokemonName: selectedPokemon.displayName,
+                huntName: huntName.trimmingCharacters(in: .whitespacesAndNewlines),
                 game: selectedGame,
-                method: method,
-                oddsDenominator: method.oddsDenominator(in: selectedGame),
-                encounters: 0
+                method: selectedMethod,
+                trackingMetric: trackingMetric,
+                hasShinyCharm: hasShinyCharm,
+                oddsDenominator: oddsDenominator,
+                encounters: trackingMetric.tracksEncounters ? Int(startingEncounterText) ?? 0 : 0,
+                encounterIncrement: trackingMetric.tracksEncounters ? Int(encounterIncrementText) ?? 1 : 1
             )
         )
         dismiss()
     }
-}
 
-private enum NewShinyHuntStep: Hashable {
-    case pokemon
-    case method
+    private func sanitizedNumberText(_ text: String, fallback: String) -> String {
+        let digits = text.filter(\.isNumber)
+        let trimmedDigits = String(digits.prefix(6))
+
+        if trimmedDigits.isEmpty {
+            return fallback
+        }
+
+        return trimmedDigits
+    }
 }
 
 struct NewShinyHuntView_Previews: PreviewProvider {

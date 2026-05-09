@@ -262,7 +262,7 @@ enum ShinyGame: String, CaseIterable, Codable, Identifiable {
     }
 
     func containsAvailablePokemon(_ pokemon: PokemonListItem) -> Bool {
-        availablePokemonIDRange.contains(pokemon.id)
+        availablePokemonIDRange.contains(pokemon.id) || supportsSpecialForm(pokemon)
     }
 
     func shinySpriteURL(for pokemonID: Int) -> URL? {
@@ -341,6 +341,32 @@ enum ShinyGame: String, CaseIterable, Codable, Identifiable {
         case .scarletViolet:
             return 1...1025
         }
+    }
+
+    private func supportsSpecialForm(_ pokemon: PokemonListItem) -> Bool {
+        guard pokemon.id > 1025 else {
+            return false
+        }
+
+        if pokemon.name.contains("-alola") {
+            return generation >= 7
+        }
+
+        if pokemon.name.contains("-galar")
+            || pokemon.name.contains("-hisui")
+            || pokemon.name.contains("-gigantamax") {
+            return generation >= 8
+        }
+
+        if pokemon.name.contains("-paldea")
+            || pokemon.name.contains("-starter")
+            || pokemon.name.contains("-combat-breed")
+            || pokemon.name.contains("-blaze-breed")
+            || pokemon.name.contains("-aqua-breed") {
+            return generation >= 9
+        }
+
+        return generation >= 7
     }
 
     private var shinySpritePath: String? {
