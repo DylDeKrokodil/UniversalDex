@@ -19,6 +19,9 @@ struct NewShinyHuntView: View {
     @State private var hasShinyCharm = false
     @State private var trackingMetric = ShinyTrackingMetric.encounters
     @State private var startingEncounterText = "0"
+    @State private var startingHoursText = "0"
+    @State private var startingMinutesText = "0"
+    @State private var startingSecondsText = "0"
     @State private var encounterIncrementText = "1"
 
     let addAction: (ShinyHunt) -> Void
@@ -49,6 +52,9 @@ struct NewShinyHuntView: View {
         case huntName
         case targetPokemon
         case startingEncounter
+        case startingHours
+        case startingMinutes
+        case startingSeconds
         case encounterIncrement
     }
 
@@ -109,10 +115,20 @@ struct NewShinyHuntView: View {
                             .keyboardType(.numberPad)
                             .focused($focusedField, equals: .encounterIncrement)
                     }
+
+                    if trackingMetric.tracksTime {
+                        LabeledContent("Starting time") {
+                            HStack(spacing: 8) {
+                                durationField("Hours", text: $startingHoursText, suffix: "h", field: .startingHours)
+                                durationField("Minutes", text: $startingMinutesText, suffix: "m", field: .startingMinutes)
+                                durationField("Seconds", text: $startingSecondsText, suffix: "s", field: .startingSeconds)
+                            }
+                        }
+                    }
                 } header: {
                     Text("Tracking")
                 } footer: {
-                    Text("The hunt timer starts on the first encounter or when you start time tracking.")
+                    Text("Set a starting time if this hunt already has tracked time. The timer starts on the first encounter or when you start time tracking.")
                 }
             }
             .navigationTitle("New Hunt")
@@ -154,10 +170,25 @@ struct NewShinyHuntView: View {
             .onChange(of: encounterIncrementText) { _, newValue in
                 encounterIncrementText = sanitizedNumberText(newValue, fallback: "1")
             }
+            .onChange(of: startingHoursText) { _, newValue in
+                startingHoursText = sanitizedNumberText(newValue, fallback: "0")
+            }
+            .onChange(of: startingMinutesText) { _, newValue in
+                startingMinutesText = sanitizedDurationComponentText(newValue)
+            }
+            .onChange(of: startingSecondsText) { _, newValue in
+                startingSecondsText = sanitizedDurationComponentText(newValue)
+            }
             .onChange(of: trackingMetric) { _, newMetric in
                 if !newMetric.tracksEncounters {
                     startingEncounterText = "0"
                     encounterIncrementText = "1"
+                }
+
+                if !newMetric.tracksTime {
+                    startingHoursText = "0"
+                    startingMinutesText = "0"
+                    startingSecondsText = "0"
                 }
             }
         }
@@ -207,6 +238,24 @@ struct NewShinyHuntView: View {
         }
     }
 
+    private func durationField(
+        _ label: String,
+        text: Binding<String>,
+        suffix: String,
+        field: Field
+    ) -> some View {
+        HStack(spacing: 2) {
+            TextField(label, text: text)
+                .keyboardType(.numberPad)
+                .multilineTextAlignment(.trailing)
+                .focused($focusedField, equals: field)
+                .frame(minWidth: 28, maxWidth: 44)
+
+            Text(suffix)
+                .foregroundStyle(.secondary)
+        }
+    }
+
     private func selectGame(_ game: ShinyGame) {
         selectedGame = game
         if !selectedGame.supportsShinyCharm {
@@ -247,10 +296,19 @@ struct NewShinyHuntView: View {
                 hasShinyCharm: hasShinyCharm,
                 oddsDenominator: oddsDenominator,
                 encounters: trackingMetric.tracksEncounters ? Int(startingEncounterText) ?? 0 : 0,
-                encounterIncrement: trackingMetric.tracksEncounters ? Int(encounterIncrementText) ?? 1 : 1
+                encounterIncrement: trackingMetric.tracksEncounters ? Int(encounterIncrementText) ?? 1 : 1,
+                elapsedTime: trackingMetric.tracksTime ? startingElapsedTime : 0
             )
         )
         dismiss()
+    }
+
+    private var startingElapsedTime: TimeInterval {
+        let hours = Int(startingHoursText) ?? 0
+        let minutes = Int(startingMinutesText) ?? 0
+        let seconds = Int(startingSecondsText) ?? 0
+
+        return TimeInterval((hours * 3_600) + (minutes * 60) + seconds)
     }
 
     private func sanitizedNumberText(_ text: String, fallback: String) -> String {
@@ -262,6 +320,12 @@ struct NewShinyHuntView: View {
         }
 
         return trimmedDigits
+    }
+
+    private func sanitizedDurationComponentText(_ text: String) -> String {
+        let sanitizedText = sanitizedNumberText(text, fallback: "0")
+        let component = min(Int(sanitizedText) ?? 0, 59)
+        return component.formatted()
     }
 }
 

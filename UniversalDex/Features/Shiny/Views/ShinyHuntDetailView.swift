@@ -278,7 +278,12 @@ struct ShinyHuntDetailView: View {
                     }
 
                     if hunt.trackingMetric.tracksTime {
-                        LabeledContent("Time", value: ShinyHunt.formattedDuration(completionElapsedTime))
+                        TimelineView(.periodic(from: .now, by: 1)) { _ in
+                            LabeledContent(
+                                "Time",
+                                value: ShinyHunt.formattedDuration(resolvedCompletionElapsedTime(for: hunt))
+                            )
+                        }
                     }
 
                     DatePicker("Date caught", selection: $completionCaughtAt, displayedComponents: .date)
@@ -309,7 +314,7 @@ struct ShinyHuntDetailView: View {
         completionNickname = hunt.completion?.nickname ?? ""
         completionBall = hunt.completion?.ball ?? .poke
         completionElapsedTime = hunt.totalElapsedTime
-        completionCaughtAt = Date()
+        completionCaughtAt = hunt.completion?.caughtAt ?? Date()
         completionIsFailed = hunt.completion?.isFailed ?? false
         isPresentingCompletion = true
     }
@@ -319,13 +324,17 @@ struct ShinyHuntDetailView: View {
             nickname: completionNickname.trimmingCharacters(in: .whitespacesAndNewlines),
             ball: completionBall,
             encounters: hunt.encounters,
-            elapsedTime: completionElapsedTime,
+            elapsedTime: resolvedCompletionElapsedTime(for: hunt),
             caughtAt: completionCaughtAt,
             isFailed: completionIsFailed
         )
 
         viewModel.complete(hunt, completion: completion)
         isPresentingCompletion = false
+    }
+
+    private func resolvedCompletionElapsedTime(for hunt: ShinyHunt) -> TimeInterval {
+        max(completionElapsedTime, hunt.totalElapsedTime)
     }
 
     private func completionSummary(_ completion: ShinyHunt.Completion, for hunt: ShinyHunt) -> String {

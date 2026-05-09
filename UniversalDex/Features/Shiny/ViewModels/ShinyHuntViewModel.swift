@@ -118,13 +118,17 @@ final class ShinyHuntViewModel: ObservableObject {
 
     func complete(_ hunt: ShinyHunt, completion: ShinyHunt.Completion) {
         update(hunt) { editableHunt in
-            editableHunt.stopTimer(at: completion.caughtAt)
-            editableHunt.encounters = max(0, completion.encounters)
-            editableHunt.elapsedTime = max(0, completion.elapsedTime)
+            var savedCompletion = completion
+            savedCompletion.encounters = max(0, completion.encounters)
+            savedCompletion.elapsedTime = max(0, max(completion.elapsedTime, editableHunt.totalElapsedTime))
+
+            editableHunt.stopTimer()
+            editableHunt.encounters = savedCompletion.encounters
+            editableHunt.elapsedTime = savedCompletion.elapsedTime
             editableHunt.timerStartedAt = nil
             editableHunt.isCaught = true
-            editableHunt.caughtAt = completion.caughtAt
-            editableHunt.completion = completion
+            editableHunt.caughtAt = savedCompletion.caughtAt
+            editableHunt.completion = savedCompletion
         }
     }
 
