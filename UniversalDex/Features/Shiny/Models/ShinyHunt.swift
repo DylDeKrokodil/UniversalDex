@@ -120,6 +120,14 @@ struct ShinyHunt: Identifiable, Codable, Hashable {
         return game.shinySpriteURL(for: pokemonID)
     }
 
+    var homeShinySpriteURL: URL? {
+        guard let pokemonID else {
+            return nil
+        }
+
+        return URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/shiny/\(pokemonID).png")
+    }
+
     var gameAnimatedShinySpriteURL: URL? {
         guard let pokemonID else {
             return nil
@@ -139,6 +147,7 @@ struct ShinyHunt: Identifiable, Codable, Hashable {
     var detailShinySpriteURLs: [URL] {
         uniqueURLs([
             showdownAnimatedShinySpriteURL,
+            homeShinySpriteURL,
             gameShinySpriteURL,
         ].compactMap { $0 })
     }

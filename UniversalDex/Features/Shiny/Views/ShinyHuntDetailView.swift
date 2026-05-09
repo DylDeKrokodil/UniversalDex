@@ -90,7 +90,7 @@ struct ShinyHuntDetailView: View {
 
                 if !hunt.detailShinySpriteURLs.isEmpty {
                     ShinyPokemonArtworkView(sourceURLs: hunt.detailShinySpriteURLs)
-                    .padding(12)
+                    .padding(38)
                 } else {
                     Image(systemName: "sparkles")
                         .font(.system(size: 72, weight: .semibold))
