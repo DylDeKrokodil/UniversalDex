@@ -169,29 +169,31 @@ private struct ShinyHuntRow: Codable {
     }
 
     init(hunt: ShinyHunt, userID: UUID) {
-        id = hunt.id
+        let persistedHunt = hunt.withoutRunningTimerState()
+
+        id = persistedHunt.id
         self.userID = userID
-        pokemonID = hunt.pokemonID
-        pokemonName = hunt.pokemonName
-        huntName = hunt.huntName
-        game = hunt.game.rawValue
-        method = hunt.method.rawValue
-        trackingMetric = hunt.trackingMetric.rawValue
-        hasShinyCharm = hunt.hasShinyCharm
-        oddsDenominator = hunt.oddsDenominator
-        encounters = hunt.encounters
-        encounterIncrement = hunt.encounterIncrement
-        startedAt = hunt.startedAt
-        elapsedTime = hunt.elapsedTime
-        timerStartedAt = hunt.timerStartedAt
-        isCaught = hunt.isCaught
-        createdAt = hunt.createdAt
-        caughtAt = hunt.caughtAt
-        completionNickname = hunt.completion?.nickname
-        completionBall = hunt.completion?.ball.rawValue
-        completionEncounters = hunt.completion?.encounters
-        completionElapsedTime = hunt.completion?.elapsedTime
-        completionIsFailed = hunt.completion?.isFailed ?? false
+        pokemonID = persistedHunt.pokemonID
+        pokemonName = persistedHunt.pokemonName
+        huntName = persistedHunt.huntName
+        game = persistedHunt.game.rawValue
+        method = persistedHunt.method.rawValue
+        trackingMetric = persistedHunt.trackingMetric.rawValue
+        hasShinyCharm = persistedHunt.hasShinyCharm
+        oddsDenominator = persistedHunt.oddsDenominator
+        encounters = persistedHunt.encounters
+        encounterIncrement = persistedHunt.encounterIncrement
+        startedAt = persistedHunt.startedAt
+        elapsedTime = persistedHunt.elapsedTime
+        timerStartedAt = nil
+        isCaught = persistedHunt.isCaught
+        createdAt = persistedHunt.createdAt
+        caughtAt = persistedHunt.caughtAt
+        completionNickname = persistedHunt.completion?.nickname
+        completionBall = persistedHunt.completion?.ball.rawValue
+        completionEncounters = persistedHunt.completion?.encounters
+        completionElapsedTime = persistedHunt.completion?.elapsedTime
+        completionIsFailed = persistedHunt.completion?.isFailed ?? false
     }
 
     func asHunt(encounterEvents: [ShinyEncounterEvent]) -> ShinyHunt {
@@ -221,7 +223,7 @@ private struct ShinyHuntRow: Codable {
             encounterEvents: encounterEvents,
             startedAt: startedAt,
             elapsedTime: elapsedTime,
-            timerStartedAt: timerStartedAt,
+            timerStartedAt: nil,
             isCaught: isCaught,
             createdAt: createdAt,
             caughtAt: caughtAt,

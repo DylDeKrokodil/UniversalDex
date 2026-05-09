@@ -110,6 +110,12 @@ final class ShinyHuntViewModel: ObservableObject {
         }
     }
 
+    func stopRunningTimers() {
+        for hunt in hunts where hunt.isTimerRunning {
+            stopTimer(for: hunt)
+        }
+    }
+
     func complete(_ hunt: ShinyHunt, completion: ShinyHunt.Completion) {
         update(hunt) { editableHunt in
             editableHunt.stopTimer(at: completion.caughtAt)

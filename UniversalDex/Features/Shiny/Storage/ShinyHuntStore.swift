@@ -38,16 +38,19 @@ struct LocalShinyHuntStore: ShinyHuntStore {
             return []
         }
 
-        return try JSONDecoder().decode([ShinyHunt].self, from: data)
+        return try JSONDecoder()
+            .decode([ShinyHunt].self, from: data)
+            .map { $0.withoutRunningTimerState() }
     }
 
     func upsert(_ hunt: ShinyHunt) async throws {
         var hunts = try await fetchHunts()
+        let persistedHunt = hunt.withoutRunningTimerState()
 
-        if let index = hunts.firstIndex(where: { $0.id == hunt.id }) {
-            hunts[index] = hunt
+        if let index = hunts.firstIndex(where: { $0.id == persistedHunt.id }) {
+            hunts[index] = persistedHunt
         } else {
-            hunts.insert(hunt, at: 0)
+            hunts.insert(persistedHunt, at: 0)
         }
 
         try save(hunts)
@@ -59,7 +62,7 @@ struct LocalShinyHuntStore: ShinyHuntStore {
     }
 
     private func save(_ hunts: [ShinyHunt]) throws {
-        let data = try JSONEncoder().encode(hunts)
+        let data = try JSONEncoder().encode(hunts.map { $0.withoutRunningTimerState() })
         UserDefaults.standard.set(data, forKey: storageKey)
     }
 }

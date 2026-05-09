@@ -364,6 +364,12 @@ struct ShinyHunt: Identifiable, Codable, Hashable {
         self.timerStartedAt = nil
     }
 
+    func withoutRunningTimerState() -> ShinyHunt {
+        var copy = self
+        copy.timerStartedAt = nil
+        return copy
+    }
+
     static func formattedDuration(_ duration: TimeInterval) -> String {
         let totalSeconds = max(0, Int(duration.rounded(.down)))
         let hours = totalSeconds / 3600

@@ -31,7 +31,6 @@ struct AuthView: View {
     @State private var mode = Mode.signIn
 
     let availability: AuthAvailability?
-    let continueWithoutAuth: () -> Void
 
     var body: some View {
         ZStack {
@@ -130,9 +129,6 @@ struct AuthView: View {
                         .buttonStyle(.borderedProminent)
                         .tint(AppTheme.accentColor)
                         .disabled(viewModel.isWorking || availability == .sdkNotInstalled)
-
-                        Button("Continue Without Sign In", action: continueWithoutAuth)
-                            .buttonStyle(.bordered)
                     }
                     .padding(20)
                     .background(AppTheme.homeCardBackground, in: RoundedRectangle(cornerRadius: 28))
@@ -167,8 +163,7 @@ struct AuthView_Previews: PreviewProvider {
     static var previews: some View {
         AuthView(
             viewModel: AuthViewModel(),
-            availability: .missingConfiguration,
-            continueWithoutAuth: {}
+            availability: .missingConfiguration
         )
     }
 }

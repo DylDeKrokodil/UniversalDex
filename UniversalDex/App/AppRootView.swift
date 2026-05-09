@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct AppRootView: View {
+    @Environment(\.scenePhase) private var scenePhase
+
     @ObservedObject var authViewModel: AuthViewModel
     let onRequestSignIn: () -> Void
 
@@ -50,6 +52,13 @@ struct AppRootView: View {
             }
         }
         .tint(AppTheme.accentColor)
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase != .active else {
+                return
+            }
+
+            shinyHuntViewModel.stopRunningTimers()
+        }
     }
 }
 
