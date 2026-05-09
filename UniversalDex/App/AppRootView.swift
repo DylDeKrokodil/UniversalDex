@@ -9,12 +9,17 @@ import SwiftUI
 
 struct AppRootView: View {
     @ObservedObject var authViewModel: AuthViewModel
+    let onRequestSignIn: () -> Void
 
     @State private var selectedTab = AppTab.home
     @StateObject private var shinyHuntViewModel: ShinyHuntViewModel
 
-    init(authViewModel: AuthViewModel) {
+    init(
+        authViewModel: AuthViewModel,
+        onRequestSignIn: @escaping () -> Void = {}
+    ) {
         self.authViewModel = authViewModel
+        self.onRequestSignIn = onRequestSignIn
 
         let store: any ShinyHuntStore
         if authViewModel.authenticatedUser != nil {
@@ -34,7 +39,8 @@ struct AppRootView: View {
                 tab.makeContent(
                     shinyHuntViewModel: shinyHuntViewModel,
                     selectedTab: $selectedTab,
-                    authViewModel: authViewModel
+                    authViewModel: authViewModel,
+                    onRequestSignIn: onRequestSignIn
                 )
                     .tag(tab)
                     .tabItem {

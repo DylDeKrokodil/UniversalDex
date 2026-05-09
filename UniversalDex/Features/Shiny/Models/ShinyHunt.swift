@@ -112,20 +112,35 @@ struct ShinyHunt: Identifiable, Codable, Hashable {
         return URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/\(pokemonID).png")
     }
 
-    var shinySpriteURL: URL? {
+    var gameShinySpriteURL: URL? {
         guard let pokemonID else {
             return nil
         }
 
-        return URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/\(pokemonID).png")
+        return game.shinySpriteURL(for: pokemonID)
     }
 
-    var animatedShinySpriteURL: URL? {
+    var gameAnimatedShinySpriteURL: URL? {
         guard let pokemonID else {
             return nil
         }
 
-        return URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/\(pokemonID).gif")
+        return game.animatedShinySpriteURL(for: pokemonID)
+    }
+
+    var showdownAnimatedShinySpriteURL: URL? {
+        guard let pokemonID else {
+            return nil
+        }
+
+        return URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/shiny/\(pokemonID).gif")
+    }
+
+    var detailShinySpriteURLs: [URL] {
+        uniqueURLs([
+            showdownAnimatedShinySpriteURL,
+            gameShinySpriteURL,
+        ].compactMap { $0 })
     }
 
     var latestCryURL: URL? {
@@ -146,6 +161,11 @@ struct ShinyHunt: Identifiable, Codable, Hashable {
 
     var lastActivityAt: Date {
         encounterEvents.last?.recordedAt ?? createdAt
+    }
+
+    private func uniqueURLs(_ urls: [URL]) -> [URL] {
+        var seenURLs: Set<URL> = []
+        return urls.filter { seenURLs.insert($0).inserted }
     }
 
     var cumulativeProbabilityText: String {

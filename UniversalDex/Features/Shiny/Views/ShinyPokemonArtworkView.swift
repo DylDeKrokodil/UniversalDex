@@ -9,36 +9,57 @@ import SwiftUI
 import WebKit
 
 struct ShinyPokemonArtworkView: View {
-    let url: URL?
+    var url: URL? = nil
     var animatedURL: URL? = nil
+    var fallbackURL: URL? = nil
+    var sourceURLs: [URL] = []
 
     var body: some View {
-        if let animatedURL {
-            AnimatedShinySpriteView(url: animatedURL)
+        if !sourceURLs.isEmpty {
+            SpriteFallbackWebView(sourceURLs: sourceURLs)
+                .allowsHitTesting(false)
+        } else if let animatedURL {
+            SpriteFallbackWebView(
+                sourceURLs: [animatedURL] + [url, fallbackURL].compactMap { $0 }
+            )
                 .allowsHitTesting(false)
         } else {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case .empty:
-                    ProgressView()
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFit()
-                case .failure:
+            FallbackPokemonImageView(sourceURLs: [url, fallbackURL].compactMap { $0 })
+        }
+    }
+}
+
+private struct FallbackPokemonImageView: View {
+    let sourceURLs: [URL]
+
+    var body: some View {
+        AsyncImage(url: sourceURLs.first) { phase in
+            switch phase {
+            case .empty:
+                ProgressView()
+            case .success(let image):
+                image
+                    .resizable()
+                    .scaledToFit()
+            case .failure:
+                let fallbackURLs = Array(sourceURLs.dropFirst())
+
+                if !fallbackURLs.isEmpty {
+                    FallbackPokemonImageView(sourceURLs: fallbackURLs)
+                } else {
                     Image(systemName: "questionmark.circle.fill")
                         .font(.title3)
                         .foregroundStyle(.secondary)
-                @unknown default:
-                    EmptyView()
                 }
+            @unknown default:
+                EmptyView()
             }
         }
     }
 }
 
-private struct AnimatedShinySpriteView: UIViewRepresentable {
-    let url: URL
+private struct SpriteFallbackWebView: UIViewRepresentable {
+    let sourceURLs: [URL]
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
@@ -56,16 +77,20 @@ private struct AnimatedShinySpriteView: UIViewRepresentable {
     }
 
     func updateUIView(_ webView: WKWebView, context: Context) {
-        guard context.coordinator.loadedURL != url else {
+        guard context.coordinator.loadedURLs != sourceURLs else {
             return
         }
 
-        context.coordinator.loadedURL = url
-        webView.loadHTMLString(html(for: url), baseURL: nil)
+        context.coordinator.loadedURLs = sourceURLs
+        webView.loadHTMLString(html(for: sourceURLs), baseURL: nil)
     }
 
-    private func html(for url: URL) -> String {
-        """
+    private func html(for urls: [URL]) -> String {
+        let sources = urls
+            .map { "'\($0.absoluteString)'" }
+            .joined(separator: ",")
+
+        return """
         <!doctype html>
         <html>
         <head>
@@ -91,13 +116,30 @@ private struct AnimatedShinySpriteView: UIViewRepresentable {
         </style>
         </head>
         <body>
-            <img src="\(url.absoluteString)" onerror="this.style.display='none';">
+            <img id="pokemon-sprite" alt="" onerror="loadNextSprite();">
+            <script>
+            const sources = [\(sources)];
+            const currentImage = document.getElementById('pokemon-sprite');
+            let sourceIndex = 0;
+
+            function loadNextSprite() {
+                if (sourceIndex >= sources.length) {
+                    currentImage.style.display = 'none';
+                    return;
+                }
+
+                currentImage.src = sources[sourceIndex];
+                sourceIndex += 1;
+            }
+
+            loadNextSprite();
+            </script>
         </body>
         </html>
         """
     }
 
     final class Coordinator {
-        var loadedURL: URL?
+        var loadedURLs: [URL] = []
     }
 }

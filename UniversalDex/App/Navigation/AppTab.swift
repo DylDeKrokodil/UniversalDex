@@ -53,7 +53,8 @@ enum AppTab: CaseIterable, Hashable, Identifiable {
     func makeContent(
         shinyHuntViewModel: ShinyHuntViewModel,
         selectedTab: Binding<AppTab>,
-        authViewModel: AuthViewModel
+        authViewModel: AuthViewModel,
+        onRequestSignIn: @escaping () -> Void
     ) -> some View {
         switch self {
         case .home:
@@ -64,7 +65,10 @@ enum AppTab: CaseIterable, Hashable, Identifiable {
         case .shiny:
             ShinyView(viewModel: shinyHuntViewModel)
         case .settings:
-            SettingsView(authViewModel: authViewModel)
+            SettingsView(
+                authViewModel: authViewModel,
+                onRequestSignIn: onRequestSignIn
+            )
         }
     }
 }

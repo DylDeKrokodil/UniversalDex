@@ -12,6 +12,10 @@ struct UniversalDexApp: App {
     @AppStorage(AppAppearanceOption.storageKey)
     private var appearanceOption = AppAppearanceOption.automatic.rawValue
 
+    init() {
+        AppNetworkRequestLogger.register()
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()

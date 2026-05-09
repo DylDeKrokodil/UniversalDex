@@ -265,6 +265,22 @@ enum ShinyGame: String, CaseIterable, Codable, Identifiable {
         availablePokemonIDRange.contains(pokemon.id)
     }
 
+    func shinySpriteURL(for pokemonID: Int) -> URL? {
+        guard let shinySpritePath else {
+            return nil
+        }
+
+        return URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/\(shinySpritePath)/\(pokemonID).png")
+    }
+
+    func animatedShinySpriteURL(for pokemonID: Int) -> URL? {
+        guard let animatedShinySpritePath else {
+            return nil
+        }
+
+        return URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/\(animatedShinySpritePath)/\(pokemonID).gif")
+    }
+
     private var family: GameFamily {
         switch self {
         case .gold, .silver, .crystal:
@@ -324,6 +340,58 @@ enum ShinyGame: String, CaseIterable, Codable, Identifiable {
             return 1...905
         case .scarletViolet:
             return 1...1025
+        }
+    }
+
+    private var shinySpritePath: String? {
+        switch self {
+        case .gold:
+            return "generation-ii/gold/shiny"
+        case .silver:
+            return "generation-ii/silver/shiny"
+        case .crystal:
+            return "generation-ii/crystal/shiny"
+        case .ruby, .sapphire:
+            return "generation-iii/ruby-sapphire/shiny"
+        case .emerald:
+            return "generation-iii/emerald/shiny"
+        case .fireRed, .leafGreen:
+            return "generation-iii/firered-leafgreen/shiny"
+        case .diamond, .pearl:
+            return "generation-iv/diamond-pearl/shiny"
+        case .platinum:
+            return "generation-iv/platinum/shiny"
+        case .heartGold, .soulSilver:
+            return "generation-iv/heartgold-soulsilver/shiny"
+        case .black, .white, .black2, .white2:
+            return "generation-v/black-white/shiny"
+        case .x, .y:
+            return "generation-vi/x-y/shiny"
+        case .omegaRuby, .alphaSapphire:
+            return "generation-vi/omegaruby-alphasapphire/shiny"
+        case .sun, .moon, .ultraSun, .ultraMoon:
+            return "generation-vii/ultra-sun-ultra-moon/shiny"
+        case .letsGoPikachu,
+             .letsGoEevee,
+             .sword,
+             .shield,
+             .brilliantDiamond,
+             .shiningPearl,
+             .legendsArceus,
+             .scarlet,
+             .violet:
+            return nil
+        }
+    }
+
+    private var animatedShinySpritePath: String? {
+        switch self {
+        case .crystal:
+            return "generation-ii/crystal/animated/shiny"
+        case .black, .white, .black2, .white2:
+            return "generation-v/black-white/animated/shiny"
+        default:
+            return nil
         }
     }
 }

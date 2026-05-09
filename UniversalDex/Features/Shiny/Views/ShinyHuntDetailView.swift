@@ -88,11 +88,8 @@ struct ShinyHuntDetailView: View {
                 Circle()
                     .fill(hunt.isCaught ? Color.green.opacity(0.16) : AppTheme.accentColor.opacity(0.12))
 
-                if hunt.shinySpriteURL != nil || hunt.animatedShinySpriteURL != nil {
-                    ShinyPokemonArtworkView(
-                        url: hunt.shinySpriteURL,
-                        animatedURL: hunt.animatedShinySpriteURL
-                    )
+                if !hunt.detailShinySpriteURLs.isEmpty {
+                    ShinyPokemonArtworkView(sourceURLs: hunt.detailShinySpriteURLs)
                     .padding(12)
                 } else {
                     Image(systemName: "sparkles")

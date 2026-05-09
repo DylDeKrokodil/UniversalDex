@@ -38,7 +38,10 @@ struct AuthGateView: View {
     @ViewBuilder
     private var destinationView: some View {
         if isUsingOfflineMode {
-            AppRootView(authViewModel: viewModel)
+            AppRootView(
+                authViewModel: viewModel,
+                onRequestSignIn: showAuthView
+            )
         } else {
             switch viewModel.status {
             case .loading:
@@ -46,7 +49,10 @@ struct AuthGateView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(AppTheme.screenBackground)
             case let .authenticated(user):
-                AppRootView(authViewModel: viewModel)
+                AppRootView(
+                    authViewModel: viewModel,
+                    onRequestSignIn: showAuthView
+                )
                     .id(user.id)
             case let .setupRequired(availability):
                 AuthView(
@@ -65,6 +71,16 @@ struct AuthGateView: View {
                     }
                 )
             }
+        }
+    }
+
+    private func showAuthView() {
+        withAnimation(.easeInOut(duration: 0.24)) {
+            isUsingOfflineMode = false
+        }
+
+        Task {
+            await viewModel.load()
         }
     }
 

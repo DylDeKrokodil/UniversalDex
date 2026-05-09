@@ -79,8 +79,8 @@ struct ShinyHuntCard: View {
             Circle()
                 .fill(hunt.isCaught ? Color.green.opacity(0.18) : AppTheme.accentColor.opacity(0.14))
 
-            if let shinySpriteURL = hunt.shinySpriteURL {
-                ShinyPokemonArtworkView(url: shinySpriteURL)
+            if let gameShinySpriteURL = hunt.gameShinySpriteURL {
+                ShinyPokemonArtworkView(url: gameShinySpriteURL)
                 .padding(4)
             } else {
                 Image(systemName: hunt.isCaught ? "sparkles.rectangle.stack.fill" : "sparkles")

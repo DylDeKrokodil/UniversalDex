@@ -9,6 +9,8 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var authViewModel: AuthViewModel
+    let onRequestSignIn: () -> Void
+
     @AppStorage(AppAppearanceOption.storageKey)
     private var appearanceOption = AppAppearanceOption.automatic.rawValue
 
@@ -47,6 +49,8 @@ struct SettingsView: View {
                     } else {
                         Text("You are browsing without an account.")
                             .foregroundStyle(.secondary)
+
+                        Button("Sign In or Create Account", action: onRequestSignIn)
                     }
                 }
             }
@@ -64,6 +68,9 @@ struct SettingsView: View {
 
 struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {
-        SettingsView(authViewModel: AuthViewModel())
+        SettingsView(
+            authViewModel: AuthViewModel(),
+            onRequestSignIn: {}
+        )
     }
 }
