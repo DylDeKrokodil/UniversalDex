@@ -20,8 +20,13 @@ create table public.discord_notification_destinations (
     discord_guild_id text,
     discord_channel_id text,
     display_name text not null default '',
-    webhook_url text not null check (
-        webhook_url ~ '^https://(canary\.)?discord(app)?\.com/api/webhooks/'
+    webhook_url text,
+    check (
+        (
+            webhook_url is not null
+            and webhook_url ~ '^https://(canary\.)?discord(app)?\.com/api/webhooks/'
+        )
+        or discord_channel_id is not null
     ),
     is_enabled boolean not null default true,
     catch_notifications_enabled boolean not null default true,
@@ -52,6 +57,9 @@ create index discord_notification_destinations_user_id_idx
 
 create index discord_notification_destinations_user_id_enabled_idx
     on public.discord_notification_destinations (user_id, is_enabled);
+
+create index discord_notification_destinations_channel_id_idx
+    on public.discord_notification_destinations (discord_channel_id);
 
 create index shiny_hunt_discord_notifications_user_id_created_at_idx
     on public.shiny_hunt_discord_notifications (user_id, created_at desc);

@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @Environment(\.openURL) private var openURL
+    @Environment(\.scenePhase) private var scenePhase
+
     @ObservedObject var authViewModel: AuthViewModel
     let onRequestSignIn: () -> Void
 
@@ -70,6 +73,15 @@ struct SettingsView: View {
             .task(id: authViewModel.authenticatedUser?.id) {
                 await discordViewModel.load(for: authViewModel.authenticatedUser)
             }
+            .onChange(of: scenePhase) { _, newPhase in
+                guard newPhase == .active else {
+                    return
+                }
+
+                Task {
+                    await discordViewModel.load(for: authViewModel.authenticatedUser)
+                }
+            }
         }
     }
 
@@ -92,29 +104,24 @@ struct SettingsView: View {
                 ProgressView("Loading Discord settings...")
             } else {
                 LabeledContent("Status") {
-                    Text(discordViewModel.hasDestination ? "Connected" : "Not connected")
-                        .foregroundStyle(discordViewModel.hasDestination ? .green : .secondary)
+                    Text(discordViewModel.isConnected ? "Connected" : "Not connected")
+                        .foregroundStyle(discordViewModel.isConnected ? .green : .secondary)
                 }
 
-                TextField("Display name", text: $discordViewModel.displayName)
-                    .textInputAutocapitalization(.words)
+                if let accountLink = discordViewModel.accountLink {
+                    LabeledContent("Account") {
+                        Text(accountLink.displayName)
+                    }
+                }
+
+                if let botInviteURL = discordViewModel.botInviteURL {
+                    Button {
+                        openURL(botInviteURL)
+                    } label: {
+                        Label("Invite UniversalDex Bot", systemImage: "plus.message")
+                    }
                     .disabled(discordViewModel.isSaving)
-
-                TextField("Discord webhook URL", text: $discordViewModel.webhookURL)
-                    .textInputAutocapitalization(.never)
-                    .textContentType(.URL)
-                    .keyboardType(.URL)
-                    .autocorrectionDisabled()
-                    .disabled(discordViewModel.isSaving)
-
-                Toggle("Discord notifications", isOn: $discordViewModel.isEnabled)
-                    .disabled(discordViewModel.isSaving)
-
-                Toggle("Milestone posts", isOn: $discordViewModel.milestoneNotificationsEnabled)
-                    .disabled(!discordViewModel.isEnabled || discordViewModel.isSaving)
-
-                Toggle("Catch posts", isOn: $discordViewModel.catchNotificationsEnabled)
-                    .disabled(!discordViewModel.isEnabled || discordViewModel.isSaving)
+                }
 
                 if let errorMessage = discordViewModel.errorMessage {
                     Text(errorMessage)
@@ -130,19 +137,28 @@ struct SettingsView: View {
 
                 Button {
                     Task {
-                        await discordViewModel.save()
+                        if let authorizationURL = await discordViewModel.makeDiscordAuthorizationURL() {
+                            openURL(authorizationURL)
+                        }
                     }
                 } label: {
                     if discordViewModel.isSaving {
                         ProgressView()
                     } else {
-                        Text(discordViewModel.hasDestination ? "Save Discord Settings" : "Connect Discord Webhook")
+                        Text(discordViewModel.isConnected ? "Reconnect Discord Account" : "Connect Discord Account")
                     }
                 }
-                .disabled(!discordViewModel.canSave || discordViewModel.isSaving)
+                .disabled(discordViewModel.isSaving)
 
-                if discordViewModel.hasDestination {
-                    Button("Disconnect Discord Notifications", role: .destructive) {
+                Button("Refresh Discord Link") {
+                    Task {
+                        await discordViewModel.refresh()
+                    }
+                }
+                .disabled(discordViewModel.isSaving)
+
+                if discordViewModel.isConnected {
+                    Button("Disconnect Discord Account", role: .destructive) {
                         Task {
                             await discordViewModel.disconnect()
                         }
@@ -153,7 +169,7 @@ struct SettingsView: View {
         } header: {
             Text("Discord")
         } footer: {
-            Text("Posts shiny hunt milestones and catches to the connected Discord channel.")
+            Text("Connect your Discord account, invite the bot, then run /here in Discord where shiny hunt posts should be sent.")
         }
     }
 }

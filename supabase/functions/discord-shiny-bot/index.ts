@@ -31,10 +31,18 @@ type DatabaseWebhookPayload = {
 type NotificationDestination = {
   id: string;
   user_id: string;
+  discord_user_id: string | null;
+  discord_guild_id: string | null;
+  discord_channel_id: string | null;
   display_name: string;
-  webhook_url: string;
+  webhook_url: string | null;
   catch_notifications_enabled: boolean;
   milestone_notifications_enabled: boolean;
+};
+
+type DiscordAccountLink = {
+  discord_user_id: string;
+  discord_username: string | null;
 };
 
 type Notification =
@@ -44,6 +52,7 @@ type Notification =
 const SUPABASE_URL = requireEnv("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
 const FUNCTION_SECRET = requireEnv("UNIVERSALDEX_DISCORD_BOT_SECRET");
+const DISCORD_BOT_TOKEN = Deno.env.get("DISCORD_BOT_TOKEN");
 const MILESTONE_VALUES = parseMilestones(
   Deno.env.get("SHINY_HUNT_MILESTONES") ?? "100,500,1000,2000,5000,10000",
 );
@@ -75,21 +84,53 @@ serve(async (request) => {
     return jsonResponse({ ok: true, posted: 0, skipped: 0 });
   }
 
-  const destinations = await fetchDestinations(record.user_id);
+  const accountLink = await fetchDiscordAccountLink(record.user_id);
+
+  if (!accountLink) {
+    return jsonResponse({ ok: true, posted: 0, skipped: notifications.length });
+  }
+
+  const destinations = await fetchServerDestinations();
+  console.log(
+    `Discord shiny bot: hunt=${record.id} user=${record.user_id} notifications=${notifications.length} server_destinations=${destinations.length}`,
+  );
+
+  const membershipCache = new Map<string, boolean>();
   let posted = 0;
   let skipped = 0;
   let failed = 0;
 
   for (const destination of destinations) {
+    if (!destination.discord_guild_id) {
+      skipped += notifications.length;
+      continue;
+    }
+
+    const isMember = await cachedMembershipCheck(
+      membershipCache,
+      destination.discord_guild_id,
+      accountLink.discord_user_id,
+    );
+
+    if (!isMember) {
+      skipped += notifications.length;
+      continue;
+    }
+
+    const targetDestination = destinationForLinkedUser(
+      destination,
+      accountLink,
+    );
+
     for (const notification of notifications) {
-      if (!destinationAllows(destination, notification)) {
+      if (!destinationAllows(targetDestination, notification)) {
         skipped += 1;
         continue;
       }
 
       const logID = await createNotificationLog(
         record,
-        destination,
+        targetDestination,
         notification,
       );
 
@@ -98,7 +139,11 @@ serve(async (request) => {
         continue;
       }
 
-      const result = await postToDiscord(destination, record, notification);
+      const result = await postToDiscord(
+        targetDestination,
+        record,
+        notification,
+      );
 
       if (result.ok) {
         posted += 1;
@@ -221,29 +266,112 @@ function destinationAllows(
   return destination.milestone_notifications_enabled;
 }
 
-async function fetchDestinations(
-  userID: string,
-): Promise<NotificationDestination[]> {
+async function fetchServerDestinations(): Promise<NotificationDestination[]> {
   const url = new URL(
     `${SUPABASE_URL}/rest/v1/discord_notification_destinations`,
   );
 
-  url.searchParams.set("user_id", `eq.${userID}`);
   url.searchParams.set("is_enabled", "eq.true");
+  url.searchParams.set("discord_channel_id", "not.is.null");
+  url.searchParams.set("discord_guild_id", "not.is.null");
   url.searchParams.set(
     "select",
-    "id,user_id,display_name,webhook_url,catch_notifications_enabled,milestone_notifications_enabled",
+    "id,user_id,discord_user_id,discord_guild_id,discord_channel_id,display_name,webhook_url,catch_notifications_enabled,milestone_notifications_enabled",
   );
 
   const response = await supabaseFetch(url, { method: "GET" });
 
   if (!response.ok) {
     throw new Error(
-      `Could not fetch Discord destinations: ${await response.text()}`,
+      `Could not fetch Discord server destinations: ${await response.text()}`,
     );
   }
 
   return await response.json() as NotificationDestination[];
+}
+
+async function fetchDiscordAccountLink(
+  userID: string,
+): Promise<DiscordAccountLink | null> {
+  const url = new URL(`${SUPABASE_URL}/rest/v1/discord_account_links`);
+
+  url.searchParams.set("user_id", `eq.${userID}`);
+  url.searchParams.set("select", "discord_user_id,discord_username");
+  url.searchParams.set("limit", "1");
+
+  const response = await supabaseFetch(url, { method: "GET" });
+
+  if (!response.ok) {
+    throw new Error(
+      `Could not fetch Discord account link: ${await response.text()}`,
+    );
+  }
+
+  const rows = await response.json() as DiscordAccountLink[];
+  return rows[0] ?? null;
+}
+
+async function cachedMembershipCheck(
+  cache: Map<string, boolean>,
+  guildID: string,
+  discordUserID: string,
+): Promise<boolean> {
+  const cacheKey = `${guildID}:${discordUserID}`;
+  const cachedValue = cache.get(cacheKey);
+
+  if (cachedValue !== undefined) {
+    return cachedValue;
+  }
+
+  const isMember = await isDiscordUserInGuild(guildID, discordUserID);
+  cache.set(cacheKey, isMember);
+  return isMember;
+}
+
+async function isDiscordUserInGuild(
+  guildID: string,
+  discordUserID: string,
+): Promise<boolean> {
+  if (!DISCORD_BOT_TOKEN) {
+    return false;
+  }
+
+  const response = await fetch(
+    `https://discord.com/api/v10/guilds/${guildID}/members/${discordUserID}`,
+    {
+      headers: {
+        authorization: `Bot ${DISCORD_BOT_TOKEN}`,
+      },
+    },
+  );
+
+  if (response.ok) {
+    return true;
+  }
+
+  if (response.status === 404) {
+    console.log(
+      `Discord shiny bot: linked Discord user ${discordUserID} is not in guild ${guildID}`,
+    );
+    return false;
+  }
+
+  console.error(
+    `Discord shiny bot: could not verify guild membership for user ${discordUserID} in guild ${guildID}; status=${response.status}; body=${await response
+      .text()}`,
+  );
+  return false;
+}
+
+function destinationForLinkedUser(
+  destination: NotificationDestination,
+  accountLink: DiscordAccountLink,
+): NotificationDestination {
+  return {
+    ...destination,
+    discord_user_id: accountLink.discord_user_id,
+    display_name: accountLink.discord_username ?? "UniversalDex",
+  };
 }
 
 async function createNotificationLog(
@@ -320,6 +448,30 @@ async function postToDiscord(
   | { ok: true; messageID: string | null; responseBody: unknown }
   | { ok: false; errorMessage: string; responseBody: unknown }
 > {
+  if (destination.discord_channel_id) {
+    return await postToDiscordChannel(destination, record, notification);
+  }
+
+  if (!destination.webhook_url) {
+    return {
+      ok: false,
+      errorMessage:
+        "Discord destination does not have a channel ID or webhook URL.",
+      responseBody: null,
+    };
+  }
+
+  return await postToDiscordWebhook(destination, record, notification);
+}
+
+async function postToDiscordWebhook(
+  destination: NotificationDestination,
+  record: ShinyHuntRecord,
+  notification: Notification,
+): Promise<
+  | { ok: true; messageID: string | null; responseBody: unknown }
+  | { ok: false; errorMessage: string; responseBody: unknown }
+> {
   const response = await fetch(`${destination.webhook_url}?wait=true`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -333,6 +485,55 @@ async function postToDiscord(
     return {
       ok: false,
       errorMessage: `Discord returned ${response.status}`,
+      responseBody,
+    };
+  }
+
+  return {
+    ok: true,
+    messageID: typeof responseBody === "object" && responseBody !== null &&
+        "id" in responseBody
+      ? String(responseBody.id)
+      : null,
+    responseBody,
+  };
+}
+
+async function postToDiscordChannel(
+  destination: NotificationDestination,
+  record: ShinyHuntRecord,
+  notification: Notification,
+): Promise<
+  | { ok: true; messageID: string | null; responseBody: unknown }
+  | { ok: false; errorMessage: string; responseBody: unknown }
+> {
+  if (!DISCORD_BOT_TOKEN) {
+    return {
+      ok: false,
+      errorMessage: "DISCORD_BOT_TOKEN is not configured.",
+      responseBody: null,
+    };
+  }
+
+  const response = await fetch(
+    `https://discord.com/api/v10/channels/${destination.discord_channel_id}/messages`,
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `Bot ${DISCORD_BOT_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(discordPayload(destination, record, notification)),
+    },
+  );
+
+  const responseText = await response.text();
+  const responseBody = safeJSON(responseText) ?? responseText;
+
+  if (!response.ok) {
+    return {
+      ok: false,
+      errorMessage: `Discord bot API returned ${response.status}`,
       responseBody,
     };
   }
@@ -361,6 +562,7 @@ function discordPayload(
 
     return {
       username: "UniversalDex",
+      content: mentionText(destination),
       embeds: [{
         author: { name: authorName },
         title: isFailed ? `${title} hunt ended` : `${title} was caught`,
@@ -370,12 +572,13 @@ function discordPayload(
         fields: commonFields(record, encounters),
         timestamp: record.caught_at ?? new Date().toISOString(),
       }],
-      allowed_mentions: { parse: [] },
+      allowed_mentions: allowedMentions(destination),
     };
   }
 
   return {
     username: "UniversalDex",
+    content: mentionText(destination),
     embeds: [{
       author: { name: authorName },
       title: `${title} hit ${
@@ -389,8 +592,24 @@ function discordPayload(
       fields: commonFields(record, notification.milestoneValue),
       timestamp: new Date().toISOString(),
     }],
-    allowed_mentions: { parse: [] },
+    allowed_mentions: allowedMentions(destination),
   };
+}
+
+function mentionText(destination: NotificationDestination): string | undefined {
+  if (!destination.discord_user_id) {
+    return undefined;
+  }
+
+  return `<@${destination.discord_user_id}>`;
+}
+
+function allowedMentions(destination: NotificationDestination) {
+  if (!destination.discord_user_id) {
+    return { parse: [] };
+  }
+
+  return { users: [destination.discord_user_id], parse: [] };
 }
 
 function caughtDescription(

@@ -10,31 +10,24 @@ import Foundation
 
 @MainActor
 final class DiscordNotificationSettingsViewModel: ObservableObject {
-    @Published private(set) var destination: DiscordNotificationDestination?
+    @Published private(set) var accountLink: DiscordAccountLink?
+    @Published private(set) var botInviteURL: URL?
     @Published private(set) var isLoading = false
     @Published private(set) var isSaving = false
-    @Published var displayName = ""
-    @Published var webhookURL = ""
-    @Published var isEnabled = true
-    @Published var catchNotificationsEnabled = true
-    @Published var milestoneNotificationsEnabled = true
     @Published var errorMessage: String?
     @Published var infoMessage: String?
 
-    private let store: any DiscordNotificationDestinationStore
+    private let accountLinkStore: any DiscordAccountLinkStore
     private var loadedUserID: UUID?
 
-    init(store: any DiscordNotificationDestinationStore = SupabaseDiscordNotificationDestinationStore()) {
-        self.store = store
+    init(
+        accountLinkStore: any DiscordAccountLinkStore = SupabaseDiscordAccountLinkStore()
+    ) {
+        self.accountLinkStore = accountLinkStore
     }
 
-    var hasDestination: Bool {
-        destination != nil
-    }
-
-    var canSave: Bool {
-        !displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-            webhookURL.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("https://")
+    var isConnected: Bool {
+        accountLink != nil
     }
 
     func load(for user: AuthenticatedUser?) async {
@@ -43,8 +36,8 @@ final class DiscordNotificationSettingsViewModel: ObservableObject {
 
         guard let userID = uuid(from: user) else {
             loadedUserID = nil
-            destination = nil
-            resetForm()
+            accountLink = nil
+            botInviteURL = nil
             return
         }
 
@@ -52,67 +45,46 @@ final class DiscordNotificationSettingsViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            let destinations = try await store.fetchDestinations(userID: userID)
             loadedUserID = userID
-            destination = destinations.first
-            apply(destination: destinations.first, userID: userID)
+            accountLink = try await accountLinkStore.fetchAccountLink(userID: userID)
+            botInviteURL = accountLink == nil ? nil : Self.discordBotInviteURL
         } catch {
-            destination = nil
-            resetForm()
+            accountLink = nil
+            botInviteURL = nil
             errorMessage = displayMessage(for: error)
             AppDebugLog.log("Could not load Discord notification settings: \(error.localizedDescription)")
         }
     }
 
-    func save() async {
-        guard let loadedUserID else {
-            errorMessage = "Sign in before connecting Discord notifications."
-            return
-        }
-
-        let trimmedDisplayName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedWebhookURL = webhookURL.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        guard !trimmedDisplayName.isEmpty else {
-            errorMessage = "Enter a display name."
-            return
-        }
-
-        guard isValidDiscordWebhookURL(trimmedWebhookURL) else {
-            errorMessage = "Enter a valid Discord webhook URL."
-            return
-        }
-
+    func makeDiscordAuthorizationURL() async -> URL? {
         isSaving = true
         defer { isSaving = false }
 
         errorMessage = nil
         infoMessage = nil
 
-        let savedDestination = DiscordNotificationDestination(
-            id: destination?.id ?? UUID(),
-            userID: loadedUserID,
-            displayName: trimmedDisplayName,
-            webhookURL: trimmedWebhookURL,
-            isEnabled: isEnabled,
-            catchNotificationsEnabled: catchNotificationsEnabled,
-            milestoneNotificationsEnabled: milestoneNotificationsEnabled
-        )
-
         do {
-            try await store.upsert(savedDestination)
-            destination = savedDestination
-            displayName = trimmedDisplayName
-            webhookURL = trimmedWebhookURL
-            infoMessage = "Discord notifications saved."
+            let authorizationURL = try await accountLinkStore.startAccountLink()
+            infoMessage = "Complete the Discord connection, then return here and refresh."
+            return authorizationURL
         } catch {
             errorMessage = displayMessage(for: error)
-            AppDebugLog.log("Could not save Discord notification settings: \(error.localizedDescription)")
+            AppDebugLog.log("Could not start Discord account link: \(error.localizedDescription)")
+            return nil
         }
+    }
+
+    func refresh() async {
+        guard let loadedUserID else {
+            return
+        }
+
+        await load(for: AuthenticatedUser(id: loadedUserID.uuidString, email: ""))
     }
 
     func disconnect() async {
-        guard let destination else {
+        guard let loadedUserID else {
+            errorMessage = "Sign in before disconnecting Discord."
             return
         }
 
@@ -123,40 +95,14 @@ final class DiscordNotificationSettingsViewModel: ObservableObject {
         infoMessage = nil
 
         do {
-            try await store.delete(destination)
-            self.destination = nil
-            resetForm()
-            infoMessage = "Discord notifications disconnected."
+            try await accountLinkStore.disconnectAccountLink(userID: loadedUserID)
+            accountLink = nil
+            botInviteURL = nil
+            infoMessage = "Discord account disconnected."
         } catch {
             errorMessage = displayMessage(for: error)
-            AppDebugLog.log("Could not disconnect Discord notifications: \(error.localizedDescription)")
+            AppDebugLog.log("Could not disconnect Discord account: \(error.localizedDescription)")
         }
-    }
-
-    private func apply(destination: DiscordNotificationDestination?, userID: UUID) {
-        if let destination {
-            displayName = destination.displayName
-            webhookURL = destination.webhookURL
-            isEnabled = destination.isEnabled
-            catchNotificationsEnabled = destination.catchNotificationsEnabled
-            milestoneNotificationsEnabled = destination.milestoneNotificationsEnabled
-        } else {
-            displayName = "UniversalDex"
-            webhookURL = ""
-            isEnabled = true
-            catchNotificationsEnabled = true
-            milestoneNotificationsEnabled = true
-        }
-
-        loadedUserID = userID
-    }
-
-    private func resetForm() {
-        displayName = "UniversalDex"
-        webhookURL = ""
-        isEnabled = true
-        catchNotificationsEnabled = true
-        milestoneNotificationsEnabled = true
     }
 
     private func uuid(from user: AuthenticatedUser?) -> UUID? {
@@ -165,17 +111,6 @@ final class DiscordNotificationSettingsViewModel: ObservableObject {
         }
 
         return UUID(uuidString: id)
-    }
-
-    private func isValidDiscordWebhookURL(_ value: String) -> Bool {
-        guard let url = URL(string: value),
-              url.scheme == "https",
-              let host = url.host?.lowercased(),
-              host == "discord.com" || host == "discordapp.com" || host == "canary.discord.com" else {
-            return false
-        }
-
-        return url.path.hasPrefix("/api/webhooks/")
     }
 
     private func displayMessage(for error: Error) -> String {
@@ -187,4 +122,8 @@ final class DiscordNotificationSettingsViewModel: ObservableObject {
 
         return error.localizedDescription
     }
+
+    private static let discordBotInviteURL = URL(
+        string: "https://discord.com/oauth2/authorize?client_id=1503014986325168323&permissions=19456&scope=bot%20applications.commands"
+    )
 }
