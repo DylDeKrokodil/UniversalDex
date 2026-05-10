@@ -1,3 +1,4 @@
 /UniversalDex/Supabase.plist
 .DS_Store
 *.xcuserstate
+supabase/.temp/

@@ -11,6 +11,8 @@ struct SettingsView: View {
     @ObservedObject var authViewModel: AuthViewModel
     let onRequestSignIn: () -> Void
 
+    @StateObject private var discordViewModel = DiscordNotificationSettingsViewModel()
+
     @AppStorage(AppAppearanceOption.storageKey)
     private var appearanceOption = AppAppearanceOption.automatic.rawValue
 
@@ -61,8 +63,13 @@ struct SettingsView: View {
                         Button("Sign In or Create Account", action: onRequestSignIn)
                     }
                 }
+
+                discordSection
             }
             .navigationTitle("Settings")
+            .task(id: authViewModel.authenticatedUser?.id) {
+                await discordViewModel.load(for: authViewModel.authenticatedUser)
+            }
         }
     }
 
@@ -71,6 +78,83 @@ struct SettingsView: View {
             get: { AppAppearanceOption(rawValue: appearanceOption) ?? .automatic },
             set: { appearanceOption = $0.rawValue }
         )
+    }
+
+    @ViewBuilder
+    private var discordSection: some View {
+        Section {
+            if authViewModel.authenticatedUser == nil {
+                Text("Sign in to connect Discord shiny hunt notifications.")
+                    .foregroundStyle(.secondary)
+
+                Button("Sign In or Create Account", action: onRequestSignIn)
+            } else if discordViewModel.isLoading {
+                ProgressView("Loading Discord settings...")
+            } else {
+                LabeledContent("Status") {
+                    Text(discordViewModel.hasDestination ? "Connected" : "Not connected")
+                        .foregroundStyle(discordViewModel.hasDestination ? .green : .secondary)
+                }
+
+                TextField("Display name", text: $discordViewModel.displayName)
+                    .textInputAutocapitalization(.words)
+                    .disabled(discordViewModel.isSaving)
+
+                TextField("Discord webhook URL", text: $discordViewModel.webhookURL)
+                    .textInputAutocapitalization(.never)
+                    .textContentType(.URL)
+                    .keyboardType(.URL)
+                    .autocorrectionDisabled()
+                    .disabled(discordViewModel.isSaving)
+
+                Toggle("Discord notifications", isOn: $discordViewModel.isEnabled)
+                    .disabled(discordViewModel.isSaving)
+
+                Toggle("Milestone posts", isOn: $discordViewModel.milestoneNotificationsEnabled)
+                    .disabled(!discordViewModel.isEnabled || discordViewModel.isSaving)
+
+                Toggle("Catch posts", isOn: $discordViewModel.catchNotificationsEnabled)
+                    .disabled(!discordViewModel.isEnabled || discordViewModel.isSaving)
+
+                if let errorMessage = discordViewModel.errorMessage {
+                    Text(errorMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                }
+
+                if let infoMessage = discordViewModel.infoMessage {
+                    Text(infoMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+
+                Button {
+                    Task {
+                        await discordViewModel.save()
+                    }
+                } label: {
+                    if discordViewModel.isSaving {
+                        ProgressView()
+                    } else {
+                        Text(discordViewModel.hasDestination ? "Save Discord Settings" : "Connect Discord Webhook")
+                    }
+                }
+                .disabled(!discordViewModel.canSave || discordViewModel.isSaving)
+
+                if discordViewModel.hasDestination {
+                    Button("Disconnect Discord Notifications", role: .destructive) {
+                        Task {
+                            await discordViewModel.disconnect()
+                        }
+                    }
+                    .disabled(discordViewModel.isSaving)
+                }
+            }
+        } header: {
+            Text("Discord")
+        } footer: {
+            Text("Posts shiny hunt milestones and catches to the connected Discord channel.")
+        }
     }
 }
 
