@@ -20,8 +20,12 @@ final class DiscordNotificationSettingsViewModel: ObservableObject {
     private let accountLinkStore: any DiscordAccountLinkStore
     private var loadedUserID: UUID?
 
+    init() {
+        accountLinkStore = SupabaseDiscordAccountLinkStore()
+    }
+
     init(
-        accountLinkStore: any DiscordAccountLinkStore = SupabaseDiscordAccountLinkStore()
+        accountLinkStore: any DiscordAccountLinkStore
     ) {
         self.accountLinkStore = accountLinkStore
     }

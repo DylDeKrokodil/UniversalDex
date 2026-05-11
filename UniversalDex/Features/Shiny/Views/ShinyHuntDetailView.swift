@@ -51,7 +51,7 @@ struct ShinyHuntDetailView: View {
     private func huntDetail(_ hunt: ShinyHunt) -> some View {
         ScrollView {
             VStack(spacing: 14) {
-                pokemonStage(for: hunt)
+                auraStage(for: hunt)
 
                 controls(for: hunt)
 
@@ -91,52 +91,93 @@ struct ShinyHuntDetailView: View {
         }
     }
 
-    private func pokemonStage(for hunt: ShinyHunt) -> some View {
-        VStack(spacing: 8) {
-            ZStack {
-                Circle()
-                    .fill(hunt.isCaught ? Color.green.opacity(0.16) : AppTheme.accentColor.opacity(0.12))
 
+    private func auraStage(for hunt: ShinyHunt) -> some View {
+        VStack(spacing: 12) {
+            ZStack {
+                // Giant Background Watermark
+                if hunt.trackingMetric.tracksEncounters {
+                    Text(hunt.encounters.formatted())
+                        .font(.system(size: 140, weight: .black, design: .rounded))
+                        .minimumScaleFactor(0.5)
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [Color.primary.opacity(0.08), .clear],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .offset(y: -20)
+                }
+
+                // Pulsing Aura
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                hunt.isCaught ? Color.green.opacity(0.25) : AppTheme.accentColor.opacity(0.25),
+                                .clear
+                            ],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 100
+                        )
+                    )
+                    .scaleEffect(hunt.isTimerRunning ? 1.15 : 1.0)
+                    .animation(
+                        hunt.isTimerRunning ? .easeInOut(duration: 1.2).repeatForever(autoreverses: true) : .default,
+                        value: hunt.isTimerRunning
+                    )
+
+                // Pokemon Image
                 if !hunt.detailShinySpriteURLs.isEmpty {
                     ShinyPokemonArtworkView(sourceURLs: hunt.detailShinySpriteURLs)
-                    .padding(30)
-                } else {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 72, weight: .semibold))
-                        .foregroundStyle(AppTheme.accentColor)
+                        .padding(20)
+                        .shadow(color: .black.opacity(0.1), radius: 10)
+                }
+
+                // Top Encounter Label
+                if hunt.trackingMetric.tracksEncounters {
+                    VStack(alignment: .leading, spacing: -2) {
+                        Text(hunt.encounters.formatted())
+                            .font(.system(size: 32, weight: .black, design: .rounded))
+                        Text("Encounters")
+                            .font(.system(size: 10, weight: .bold))
+                            .textCase(.uppercase)
+                            .opacity(0.6)
+                    }
+                    .foregroundStyle(hunt.isCaught ? Color.green : AppTheme.accentColor)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .padding(16)
                 }
 
                 if hunt.latestCryURL != nil {
-                    Image(systemName: "speaker.wave.2.fill")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(AppTheme.accentColor)
-                        .padding(8)
-                        .background(.thinMaterial, in: Circle())
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-                        .padding(14)
+                    Button {
+                        cryPlaybackID += 1
+                    } label: {
+                        Image(systemName: "speaker.wave.2.fill")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(AppTheme.accentColor)
+                            .padding(10)
+                            .background(.thinMaterial, in: Circle())
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                    .padding(8)
                 }
             }
-            .frame(width: 184, height: 184)
-            .contentShape(Circle())
-            .onTapGesture {
-                guard hunt.latestCryURL != nil else {
-                    return
-                }
-
-                cryPlaybackID += 1
-            }
-            .accessibilityHint(hunt.latestCryURL == nil ? Text("") : Text("Plays the Pokemon cry"))
+            .frame(maxWidth: .infinity)
+            .frame(height: 240)
+            .background(AppTheme.cardBackground.opacity(0.4), in: RoundedRectangle(cornerRadius: 24))
 
             VStack(spacing: 4) {
                 Text(hunt.pokemonName)
-                    .font(.title3.weight(.bold))
+                    .font(.title2.weight(.black))
                     .multilineTextAlignment(.center)
 
                 metadataLine(for: hunt)
             }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.top, 4)
+        .padding(.top, 8)
     }
 
     private func metadataLine(for hunt: ShinyHunt) -> some View {
