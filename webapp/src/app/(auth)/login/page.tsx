@@ -83,7 +83,7 @@ export default function LoginPage() {
         </div>
 
         <a 
-          href="https://discord.gg/QcTZ4sCGTr" 
+          href="https://discord.gg/v3XjyeZTzA" 
           target="_blank" 
           rel="noopener noreferrer"
           className={styles.discordLink}
