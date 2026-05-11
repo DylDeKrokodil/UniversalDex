@@ -1,6 +1,6 @@
 "use client";
 
-import { ShinyHunt } from "../../types";
+import { ShinyHunt } from "../types";
 import styles from "./MiniHuntCounter.module.css";
 import { Plus, Minus, X } from "lucide-react";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
