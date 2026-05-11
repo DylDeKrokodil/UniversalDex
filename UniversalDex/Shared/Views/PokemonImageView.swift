@@ -34,7 +34,9 @@ private struct RecursiveImageView: View {
         AsyncImage(url: urls.first) { phase in
             switch phase {
             case .empty:
-                ProgressView()
+                Image("PokemonEgg")
+                    .resizable()
+                    .scaledToFit()
             case .success(let image):
                 image
                     .resizable()

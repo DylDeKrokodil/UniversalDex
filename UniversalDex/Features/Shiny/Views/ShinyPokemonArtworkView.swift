@@ -13,31 +13,44 @@ struct ShinyPokemonArtworkView: View {
     var animatedURL: URL? = nil
     var fallbackURL: URL? = nil
     var sourceURLs: [URL] = []
+    
+    @State private var isLoading = true
 
     var body: some View {
-        if !sourceURLs.isEmpty {
-            SpriteFallbackWebView(sourceURLs: sourceURLs)
-                .allowsHitTesting(false)
-        } else if let animatedURL {
-            SpriteFallbackWebView(
-                sourceURLs: [animatedURL] + [url, fallbackURL].compactMap { $0 }
-            )
-                .allowsHitTesting(false)
-        } else {
-            PokemonImageView(urls: [url, fallbackURL].compactMap { $0 })
+        ZStack {
+            if isLoading && (!sourceURLs.isEmpty || animatedURL != nil) {
+                Image("PokemonEgg")
+                    .resizable()
+                    .scaledToFit()
+            }
+
+            if !sourceURLs.isEmpty {
+                SpriteFallbackWebView(sourceURLs: sourceURLs, isLoading: $isLoading)
+                    .allowsHitTesting(false)
+            } else if let animatedURL {
+                SpriteFallbackWebView(
+                    sourceURLs: [animatedURL] + [url, fallbackURL].compactMap { $0 },
+                    isLoading: $isLoading
+                )
+                    .allowsHitTesting(false)
+            } else {
+                PokemonImageView(urls: [url, fallbackURL].compactMap { $0 })
+            }
         }
     }
 }
 
 private struct SpriteFallbackWebView: UIViewRepresentable {
     let sourceURLs: [URL]
+    @Binding var isLoading: Bool
 
     func makeCoordinator() -> Coordinator {
-        Coordinator()
+        Coordinator(isLoading: $isLoading)
     }
 
     func makeUIView(context: Context) -> WKWebView {
         let webView = WKWebView()
+        webView.navigationDelegate = context.coordinator
         webView.isOpaque = false
         webView.backgroundColor = .clear
         webView.scrollView.backgroundColor = .clear
@@ -110,7 +123,16 @@ private struct SpriteFallbackWebView: UIViewRepresentable {
         """
     }
 
-    final class Coordinator {
+    final class Coordinator: NSObject, WKNavigationDelegate {
+        @Binding var isLoading: Bool
         var loadedURLs: [URL] = []
+
+        init(isLoading: Binding<Bool>) {
+            _isLoading = isLoading
+        }
+
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            isLoading = false
+        }
     }
 }
