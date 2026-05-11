@@ -18,7 +18,7 @@ struct PokemonGridCard: View {
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            PokemonArtworkView(url: pokemon.artworkURL)
+            PokemonImageView(urls: pokemon.artworkURLs)
 
             Text(pokemon.displayName)
                 .font(.caption.weight(.semibold))
@@ -31,30 +31,6 @@ struct PokemonGridCard: View {
         .frame(maxWidth: .infinity)
         .aspectRatio(0.78, contentMode: .fit)
         .background(AppTheme.cardBackground, in: RoundedRectangle(cornerRadius: 8))
-    }
-}
-
-private struct PokemonArtworkView: View {
-    let url: URL?
-
-    var body: some View {
-        AsyncImage(url: url) { phase in
-            switch phase {
-            case .empty:
-                ProgressView()
-            case .success(let image):
-                image
-                    .resizable()
-                    .scaledToFit()
-            case .failure:
-                Image(systemName: "questionmark.circle.fill")
-                    .font(.title2)
-                    .foregroundStyle(.secondary)
-            @unknown default:
-                EmptyView()
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

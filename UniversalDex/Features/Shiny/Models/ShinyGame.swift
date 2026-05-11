@@ -269,20 +269,32 @@ enum ShinyGame: String, CaseIterable, Codable, Identifiable {
         return availablePokemonIDRange.contains(pokemon.displayID)
     }
 
-    func shinySpriteURL(for pokemonID: Int) -> URL? {
+    func shinySpriteURLs(for pokemonID: Int, gender: ShinyHunt.Gender = .male) -> [URL] {
         guard let shinySpritePath else {
-            return nil
+            return []
         }
 
-        return URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/\(shinySpritePath)/\(pokemonID).png")
+        let femalePath = "sprites/pokemon/versions/\(shinySpritePath)/female/\(pokemonID).png"
+        let malePath = "sprites/pokemon/versions/\(shinySpritePath)/\(pokemonID).png"
+
+        return [
+            gender == .female ? SupabaseConfiguration.publicStorageURL(bucket: "images", path: femalePath) : nil,
+            SupabaseConfiguration.publicStorageURL(bucket: "images", path: malePath)
+        ].compactMap { $0 }
     }
 
-    func animatedShinySpriteURL(for pokemonID: Int) -> URL? {
+    func animatedShinySpriteURLs(for pokemonID: Int, gender: ShinyHunt.Gender = .male) -> [URL] {
         guard let animatedShinySpritePath else {
-            return nil
+            return []
         }
 
-        return URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/\(animatedShinySpritePath)/\(pokemonID).gif")
+        let femalePath = "sprites/pokemon/versions/\(animatedShinySpritePath)/female/\(pokemonID).gif"
+        let malePath = "sprites/pokemon/versions/\(animatedShinySpritePath)/\(pokemonID).gif"
+
+        return [
+            gender == .female ? SupabaseConfiguration.publicStorageURL(bucket: "images", path: femalePath) : nil,
+            SupabaseConfiguration.publicStorageURL(bucket: "images", path: malePath)
+        ].compactMap { $0 }
     }
 
     private var family: GameFamily {

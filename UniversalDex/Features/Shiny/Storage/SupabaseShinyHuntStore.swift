@@ -126,6 +126,7 @@ private struct ShinyHuntRow: Codable {
     let huntName: String
     let game: String
     let method: String
+    let gender: String
     let trackingMetric: String
     let hasShinyCharm: Bool
     let oddsDenominator: Int
@@ -152,6 +153,7 @@ private struct ShinyHuntRow: Codable {
         case huntName = "hunt_name"
         case game
         case method
+        case gender
         case trackingMetric = "tracking_metric"
         case hasShinyCharm = "has_shiny_charm"
         case oddsDenominator = "odds_denominator"
@@ -181,6 +183,7 @@ private struct ShinyHuntRow: Codable {
         huntName = persistedHunt.huntName
         game = persistedHunt.game.rawValue
         method = persistedHunt.method.rawValue
+        gender = persistedHunt.gender.rawValue
         trackingMetric = persistedHunt.trackingMetric.rawValue
         hasShinyCharm = persistedHunt.hasShinyCharm
         oddsDenominator = persistedHunt.oddsDenominator
@@ -219,6 +222,7 @@ private struct ShinyHuntRow: Codable {
             huntName: huntName,
             game: ShinyGame(rawValue: game) ?? .scarlet,
             method: ShinyMethod(rawValue: method) ?? .randomEncounter,
+            gender: ShinyHunt.Gender(rawValue: gender) ?? .male,
             trackingMetric: ShinyTrackingMetric(rawValue: trackingMetric) ?? .encounters,
             hasShinyCharm: hasShinyCharm,
             oddsDenominator: oddsDenominator,

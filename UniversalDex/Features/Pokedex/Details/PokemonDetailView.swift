@@ -242,23 +242,8 @@ struct PokemonDetailView: View {
 
     private func evolutionStageRowContent(_ stage: PokemonEvolutionStage) -> some View {
         HStack(spacing: 12) {
-            AsyncImage(url: stage.pokemon?.artworkURL) { phase in
-                switch phase {
-                case .empty:
-                    ProgressView()
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFit()
-                case .failure:
-                    Image(systemName: "questionmark.circle.fill")
-                        .font(.title2)
-                        .foregroundStyle(.secondary)
-                @unknown default:
-                    EmptyView()
-                }
-            }
-            .frame(width: 64, height: 64)
+            PokemonImageView(urls: stage.pokemon?.artworkURLs ?? [])
+                .frame(width: 64, height: 64)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(stage.name)
@@ -288,23 +273,12 @@ struct PokemonDetailView: View {
 
     private func hero(_ detail: PokeAPIPokemonDetail) -> some View {
         VStack(spacing: 12) {
-            AsyncImage(url: detail.sprites.frontDefault ?? PokemonListItem(id: detail.id, name: detail.name).artworkURL) { phase in
-                switch phase {
-                case .empty:
-                    ProgressView()
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFit()
-                case .failure:
-                    Image(systemName: "questionmark.circle.fill")
-                        .font(.system(size: 56))
-                        .foregroundStyle(.secondary)
-                @unknown default:
-                    EmptyView()
-                }
-            }
-            .frame(height: 180)
+            let pokemon = PokemonListItem(id: detail.id, name: detail.name)
+            let spriteURL = detail.sprites.frontDefault
+            let imageURLs = ([spriteURL].compactMap { $0 } + pokemon.artworkURLs)
+
+            PokemonImageView(urls: imageURLs)
+                .frame(height: 180)
 
             Text(detail.name.displayName)
                 .font(.title.bold())

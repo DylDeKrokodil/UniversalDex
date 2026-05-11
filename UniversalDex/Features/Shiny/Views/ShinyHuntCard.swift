@@ -100,14 +100,8 @@ struct ShinyHuntCard: View {
             Circle()
                 .fill(hunt.isCaught ? Color.green.opacity(0.18) : AppTheme.accentColor.opacity(0.14))
 
-            if let homeShinySpriteURL = hunt.homeShinySpriteURL {
-                ShinyPokemonArtworkView(url: homeShinySpriteURL, fallbackURL: hunt.gameShinySpriteURL)
+            ShinyPokemonArtworkView(sourceURLs: hunt.detailShinySpriteURLs)
                 .padding(4)
-            } else {
-                Image(systemName: hunt.isCaught ? "sparkles.rectangle.stack.fill" : "sparkles")
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(hunt.isCaught ? .green : AppTheme.accentColor)
-            }
         }
         .frame(width: 86, height: 86)
     }

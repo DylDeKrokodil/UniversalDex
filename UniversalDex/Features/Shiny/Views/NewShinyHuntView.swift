@@ -16,6 +16,7 @@ struct NewShinyHuntView: View {
     @State private var selectedGame = ShinyGame.scarlet
     @State private var selectedMethod = ShinyMethod.randomEncounter
     @State private var selectedPokemon: PokemonListItem?
+    @State private var selectedGender = ShinyHunt.Gender.male
     @State private var hasShinyCharm = false
     @State private var trackingMetric = ShinyTrackingMetric.encounters
     @State private var startingEncounterText = "0"
@@ -67,6 +68,12 @@ struct NewShinyHuntView: View {
                         .focused($focusedField, equals: .huntName)
 
                     targetPokemonPicker
+
+                    Picker("Gender", selection: $selectedGender) {
+                        ForEach(ShinyHunt.Gender.allCases) { gender in
+                            Text(gender.displayName).tag(gender)
+                        }
+                    }
                 }
 
                 Section("Setup") {
@@ -293,6 +300,7 @@ struct NewShinyHuntView: View {
                 huntName: huntName.trimmingCharacters(in: .whitespacesAndNewlines),
                 game: selectedGame,
                 method: selectedMethod,
+                gender: selectedGender,
                 trackingMetric: trackingMetric,
                 hasShinyCharm: hasShinyCharm,
                 oddsDenominator: oddsDenominator,

@@ -53,7 +53,7 @@ struct ShinyPokemonPickerRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            ShinyPokemonArtworkView(url: pokemon.artworkURL)
+            PokemonImageView(urls: pokemon.artworkNonShinyURLs)
                 .frame(width: 36, height: 36)
 
             VStack(alignment: .leading, spacing: 2) {

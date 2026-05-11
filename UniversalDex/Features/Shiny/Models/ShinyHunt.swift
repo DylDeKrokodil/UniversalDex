@@ -8,6 +8,15 @@
 import Foundation
 
 struct ShinyHunt: Identifiable, Codable, Hashable {
+    enum Gender: String, Codable, CaseIterable, Identifiable {
+        case male
+        case female
+        case genderless
+
+        var id: String { rawValue }
+        var displayName: String { rawValue.capitalized }
+    }
+
     var id = UUID()
     var pokemonID: Int?
     var pokemonFormID: Int?
@@ -15,6 +24,7 @@ struct ShinyHunt: Identifiable, Codable, Hashable {
     var huntName: String
     var game: ShinyGame
     var method: ShinyMethod
+    var gender: Gender = .male
     var trackingMetric: ShinyTrackingMetric
     var hasShinyCharm: Bool
     var oddsDenominator: Int
@@ -51,6 +61,7 @@ struct ShinyHunt: Identifiable, Codable, Hashable {
         case huntName
         case game
         case method
+        case gender
         case trackingMetric
         case hasShinyCharm
         case oddsDenominator
@@ -74,6 +85,7 @@ struct ShinyHunt: Identifiable, Codable, Hashable {
         huntName: String? = nil,
         game: ShinyGame,
         method: ShinyMethod,
+        gender: Gender = .male,
         trackingMetric: ShinyTrackingMetric = .encounters,
         hasShinyCharm: Bool = false,
         oddsDenominator: Int,
@@ -95,6 +107,7 @@ struct ShinyHunt: Identifiable, Codable, Hashable {
         self.huntName = huntName ?? pokemonName
         self.game = game
         self.method = method
+        self.gender = gender
         self.trackingMetric = trackingMetric
         self.hasShinyCharm = hasShinyCharm
         self.oddsDenominator = oddsDenominator
@@ -120,6 +133,7 @@ struct ShinyHunt: Identifiable, Codable, Hashable {
         huntName = try container.decodeIfPresent(String.self, forKey: .huntName) ?? pokemonName
         game = try container.decode(ShinyGame.self, forKey: .game)
         method = try container.decode(ShinyMethod.self, forKey: .method)
+        gender = try container.decodeIfPresent(Gender.self, forKey: .gender) ?? .male
         trackingMetric = try container.decodeIfPresent(ShinyTrackingMetric.self, forKey: .trackingMetric) ?? .encounters
         hasShinyCharm = try container.decodeIfPresent(Bool.self, forKey: .hasShinyCharm) ?? (method == .shinyCharm || method == .masudaCharm)
         oddsDenominator = try container.decode(Int.self, forKey: .oddsDenominator)
@@ -145,6 +159,7 @@ struct ShinyHunt: Identifiable, Codable, Hashable {
         try container.encode(huntName, forKey: .huntName)
         try container.encode(game, forKey: .game)
         try container.encode(method, forKey: .method)
+        try container.encode(gender, forKey: .gender)
         try container.encode(trackingMetric, forKey: .trackingMetric)
         try container.encode(hasShinyCharm, forKey: .hasShinyCharm)
         try container.encode(oddsDenominator, forKey: .oddsDenominator)
@@ -224,52 +239,74 @@ struct ShinyHunt: Identifiable, Codable, Hashable {
         pokemonFormID ?? pokemonID
     }
 
-    var artworkURL: URL? {
-        guard let artworkPokemonID else {
-            return nil
-        }
-
-        return URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/\(artworkPokemonID).png")
+    var artworkURLs: [URL] {
+        [supabaseShinyArtworkURL].compactMap { $0 }
     }
 
-    var gameShinySpriteURL: URL? {
+    var supabaseShinyArtworkURL: URL? {
         guard let artworkPokemonID else {
             return nil
         }
 
-        return game.shinySpriteURL(for: artworkPokemonID)
+        return SupabaseConfiguration.publicStorageURL(bucket: "images", path: "sprites/pokemon/other/official-artwork/shiny/\(artworkPokemonID).png")
     }
 
-    var homeShinySpriteURL: URL? {
+    var supabaseShowdownAnimatedShinyURLs: [URL] {
         guard let artworkPokemonID else {
-            return nil
+            return []
         }
 
-        return URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/shiny/\(artworkPokemonID).png")
+        let basePath = "sprites/pokemon/other/showdown/shiny/"
+        var paths = [basePath]
+        if gender == .female {
+            paths.insert("\(basePath)female/", at: 0)
+        }
+
+        return paths.compactMap { path in
+            SupabaseConfiguration.publicStorageURL(bucket: "images", path: "\(path)\(artworkPokemonID).gif")
+        }
     }
 
-    var gameAnimatedShinySpriteURL: URL? {
+    var supabaseHomeShinyURLs: [URL] {
         guard let artworkPokemonID else {
-            return nil
+            return []
         }
 
-        return game.animatedShinySpriteURL(for: artworkPokemonID)
+        let basePath = "sprites/pokemon/other/home/shiny/"
+        var paths = [basePath]
+        if gender == .female {
+            paths.insert("\(basePath)female/", at: 0)
+        }
+
+        return paths.compactMap { path in
+            SupabaseConfiguration.publicStorageURL(bucket: "images", path: "\(path)\(artworkPokemonID).png")
+        }
     }
 
-    var showdownAnimatedShinySpriteURL: URL? {
+    var gameShinySpriteURLs: [URL] {
         guard let artworkPokemonID else {
-            return nil
+            return []
         }
 
-        return URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/shiny/\(artworkPokemonID).gif")
+        return game.shinySpriteURLs(for: artworkPokemonID, gender: gender)
+    }
+
+    var gameAnimatedShinySpriteURLs: [URL] {
+        guard let artworkPokemonID else {
+            return []
+        }
+
+        return game.animatedShinySpriteURLs(for: artworkPokemonID, gender: gender)
     }
 
     var detailShinySpriteURLs: [URL] {
-        uniqueURLs([
-            showdownAnimatedShinySpriteURL,
-            homeShinySpriteURL,
-            gameShinySpriteURL,
-        ].compactMap { $0 })
+        uniqueURLs(
+            gameAnimatedShinySpriteURLs +
+            gameShinySpriteURLs +
+            supabaseShowdownAnimatedShinyURLs +
+            supabaseHomeShinyURLs +
+            [supabaseShinyArtworkURL].compactMap { $0 }
+        )
     }
 
     var latestCryURL: URL? {

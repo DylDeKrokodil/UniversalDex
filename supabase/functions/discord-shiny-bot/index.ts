@@ -9,6 +9,7 @@ type ShinyHuntRecord = {
   hunt_name: string;
   game: string;
   method: string;
+  gender: string;
   odds_denominator: number;
   encounters: number;
   elapsed_time: number;
@@ -670,9 +671,16 @@ function pokemonThumbnail(record: ShinyHuntRecord) {
     return undefined;
   }
 
+  const isFemale = record.gender === "female";
+  const path = isFemale ? `female/${spriteID}.png` : `${spriteID}.png`;
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const storageUrl = supabaseUrl
+    ? `${supabaseUrl}/storage/v1/object/public/images/sprites/pokemon/other/home/shiny/${path}`
+    : undefined;
+
   return {
-    url:
-      `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/shiny/${spriteID}.png`,
+    url: storageUrl,
   };
 }
 

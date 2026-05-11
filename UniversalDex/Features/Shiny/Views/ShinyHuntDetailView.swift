@@ -143,6 +143,7 @@ struct ShinyHuntDetailView: View {
         let metadata = [
             hunt.game.displayName,
             hunt.method.dashboardLabel,
+            hunt.gender.displayName,
             hunt.formattedPokemonNumber.map { "#\($0)" },
         ].compactMap { $0 }
 

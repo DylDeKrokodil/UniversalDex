@@ -24,36 +24,7 @@ struct ShinyPokemonArtworkView: View {
             )
                 .allowsHitTesting(false)
         } else {
-            FallbackPokemonImageView(sourceURLs: [url, fallbackURL].compactMap { $0 })
-        }
-    }
-}
-
-private struct FallbackPokemonImageView: View {
-    let sourceURLs: [URL]
-
-    var body: some View {
-        AsyncImage(url: sourceURLs.first) { phase in
-            switch phase {
-            case .empty:
-                ProgressView()
-            case .success(let image):
-                image
-                    .resizable()
-                    .scaledToFit()
-            case .failure:
-                let fallbackURLs = Array(sourceURLs.dropFirst())
-
-                if !fallbackURLs.isEmpty {
-                    FallbackPokemonImageView(sourceURLs: fallbackURLs)
-                } else {
-                    Image(systemName: "questionmark.circle.fill")
-                        .font(.title3)
-                        .foregroundStyle(.secondary)
-                }
-            @unknown default:
-                EmptyView()
-            }
+            PokemonImageView(urls: [url, fallbackURL].compactMap { $0 })
         }
     }
 }
