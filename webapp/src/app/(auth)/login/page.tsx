@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Users } from "lucide-react";
 import styles from "./Login.module.css";
 
@@ -68,6 +69,14 @@ export default function LoginPage() {
             {isLoading ? "Signing in..." : "Sign In"}
           </button>
         </form>
+
+        <Link href="/register" className={styles.registerLink}>
+          Have an invite token? <strong>Register here</strong>
+        </Link>
+
+        <div className={styles.infoBox}>
+          <p>UniversalDex is currently in <strong>invite-only alpha</strong>. Tokens are distributed through our Discord community.</p>
+        </div>
 
         <div className={styles.divider}>
           <span>or</span>

@@ -30,6 +30,30 @@
   font-weight: 500;
 }
 
+.infoBox {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: var(--nav-hover);
+  border-radius: 12px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  border: 1px solid var(--card-border);
+  text-align: center;
+}
+
+.infoBox strong {
+  color: var(--foreground);
+}
+
+.infoBox code {
+  background: var(--card-bg);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
 .form {
   text-align: left;
 }
@@ -89,7 +113,7 @@
   cursor: not-allowed;
 }
 
-.registerLink {
+.loginLink {
   margin-top: 1.5rem;
   display: block;
   font-size: 0.85rem;
@@ -98,66 +122,6 @@
   font-weight: 600;
 }
 
-.registerLink strong {
+.loginLink strong {
   color: var(--accent);
 }
-
-.infoBox {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background: var(--nav-hover);
-  border-radius: 12px;
-  font-size: 0.85rem;
-  line-height: 1.5;
-  color: var(--text-secondary);
-  border: 1px solid var(--card-border);
-}
-
-.infoBox strong {
-  color: var(--foreground);
-}
-
-.divider {
-  display: flex;
-  align-items: center;
-  text-align: center;
-  margin: 1.5rem 0;
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-}
-
-.divider::before,
-.divider::after {
-  content: "";
-  flex: 1;
-  border-bottom: 1px solid var(--card-border);
-}
-
-.divider::before {
-  margin-right: 1rem;
-}
-
-.divider::after {
-  margin-left: 1rem;
-}
-
-.discordLink {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 0.85rem;
-  border-radius: 12px;
-  background: #5865F215;
-  color: #5865F2;
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 0.95rem;
-  transition: all 0.2s;
-}
-
-.discordLink:hover {
-  background: #5865F2;
-  color: white;
-}
-
