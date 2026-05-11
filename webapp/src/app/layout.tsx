@@ -7,6 +7,10 @@ import ThemeProvider from "@/components/ThemeProvider";
 export const metadata: Metadata = {
   title: "UniversalDex",
   description: "Your ultimate shiny hunting companion",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

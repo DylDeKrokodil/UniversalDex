@@ -124,7 +124,7 @@ export default function NewHuntPage() {
                   autoComplete="off"
                 />
                 {isSearching && <p className={styles.searching}>Searching...</p>}
-                {pokemonResults.length > 0 && (
+                {pokemonResults.length !== 0 && (
                   <div className={styles.results}>
                     {pokemonResults.map(p => (
                       <button 

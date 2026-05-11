@@ -20,8 +20,7 @@ export function useShinyHunts() {
 
   const incrementMutation = useMutation({
     mutationFn: async ({ huntId, delta }: { huntId: string; delta: number }) => {
-      // In a real app, you'd use a RPC or a transaction to ensure atomic updates
-      // and create the encounter event. For now, simple update:
+      // Fetch current value for atomic-like update on server
       const { data: hunt, error: fetchError } = await supabase
         .from("shiny_hunts")
         .select("encounters")
@@ -37,7 +36,6 @@ export function useShinyHunts() {
 
       if (updateError) throw updateError;
       
-      // Add encounter event
       const { data: userData } = await supabase.auth.getUser();
       if (userData.user) {
         await supabase.from("shiny_encounter_events").insert({
@@ -48,7 +46,33 @@ export function useShinyHunts() {
         });
       }
     },
-    onSuccess: () => {
+    onMutate: async ({ huntId, delta }) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ["shiny-hunts"] });
+
+      // Snapshot the previous value
+      const previousHunts = queryClient.getQueryData<ShinyHunt[]>(["shiny-hunts"]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData<ShinyHunt[]>(["shiny-hunts"], (old) => 
+        old?.map(hunt => 
+          hunt.id === huntId 
+            ? { ...hunt, encounters: Math.max(0, hunt.encounters + delta) } 
+            : hunt
+        )
+      );
+
+      // Return a context object with the snapshotted value
+      return { previousHunts };
+    },
+    onError: (err, newInfo, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousHunts) {
+        queryClient.setQueryData(["shiny-hunts"], context.previousHunts);
+      }
+    },
+    onSettled: () => {
+      // Always refetch after error or success to allow the server to be the source of truth
       queryClient.invalidateQueries({ queryKey: ["shiny-hunts"] });
     },
   });

@@ -2,7 +2,7 @@ import { ShinyHunt } from "../types";
 import styles from "./ShinyHuntCard.module.css";
 import { ExternalLink } from "lucide-react";
 import { createRoot } from "react-dom/client";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import { useSettingsStore } from "@/store/settingsStore";
 import MiniHuntCounter from "./MiniHuntCounter";
 
@@ -21,10 +21,10 @@ export default function ShinyHuntCard({ hunt, onIncrement }: Props) {
   const pipWindowRef = useRef<any>(null);
   const pipRootRef = useRef<any>(null);
 
-  const handleIncrement = (id: string, delta: number) => {
+  const handleIncrement = useCallback((id: string, delta: number) => {
     setLastHuntId(id);
     onIncrement(id, delta);
-  };
+  }, [onIncrement, setLastHuntId]);
 
   useEffect(() => {
     huntRef.current = hunt;
@@ -39,7 +39,7 @@ export default function ShinyHuntCard({ hunt, onIncrement }: Props) {
         />
       );
     }
-  }, [hunt, onIncrement]);
+  }, [hunt, handleIncrement]);
 
   // Clean up pop-out window if the component unmounts
   useEffect(() => {
@@ -120,15 +120,22 @@ export default function ShinyHuntCard({ hunt, onIncrement }: Props) {
       renderMini();
 
       const cleanup = () => {
-        try {
-          if (pipRootRef.current) {
-            pipRootRef.current.unmount();
+        const root = pipRootRef.current;
+        const windowRef = pipWindowRef.current;
+        
+        // Defer unmounting to avoid synchronous unmount errors during React render cycles
+        setTimeout(() => {
+          try {
+            if (root) {
+              root.unmount();
+            }
+          } catch (e) {
+            // Ignore unmount errors if window is already closed
           }
-        } catch (e) {
-          // Ignore unmount errors if window is already closed
-        }
+        }, 0);
+
         pipRootRef.current = null;
-        if (pipWindowRef.current === pipWindow) {
+        if (windowRef === pipWindow) {
           pipWindowRef.current = null;
         }
       };

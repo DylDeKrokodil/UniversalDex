@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/AuthProvider";
-import { LayoutDashboard, Settings, LogOut, PlusSquare } from "lucide-react";
+import { LayoutDashboard, Settings, LogOut, PlusSquare, Users } from "lucide-react";
 import styles from "./Sidebar.module.css";
 
 export default function Sidebar() {
@@ -55,6 +55,19 @@ export default function Sidebar() {
             <Settings size={20} />
             <span>Settings</span>
           </Link>
+        </div>
+
+        <div className={styles.section}>
+          <p className={styles.sectionTitle}>Community</p>
+          <a 
+            href="https://discord.gg/QcTZ4sCGTr" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className={styles.link}
+          >
+            <Users size={20} />
+            <span>Join Discord</span>
+          </a>
         </div>
       </nav>
 

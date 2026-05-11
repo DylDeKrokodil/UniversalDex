@@ -14,7 +14,7 @@ interface Props {
 
 export default function MiniHuntCounter({ hunt, onIncrement, onClose, targetWindow }: Props) {
   useKeyboardShortcuts((delta) => {
-    if (delta > 0) {
+    if (delta >= 1) {
       onIncrement(hunt.encounter_increment);
     } else {
       onIncrement(-1);
@@ -46,7 +46,7 @@ export default function MiniHuntCounter({ hunt, onIncrement, onClose, targetWind
         <button 
           onClick={() => onIncrement(-1)} 
           className={styles.minusBtn}
-          disabled={hunt.encounters <= 0}
+          disabled={hunt.encounters === 0}
         >
           <Minus size={24} />
         </button>

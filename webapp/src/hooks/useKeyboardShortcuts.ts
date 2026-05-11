@@ -5,7 +5,11 @@ export function useKeyboardShortcuts(onIncrement: (delta: number) => void, targe
   const { shortcuts } = useSettingsStore();
 
   useEffect(() => {
-    const win = targetWindow || window;
+    const win = targetWindow || (typeof window !== 'undefined' ? window : null);
+    if (!win || typeof win.addEventListener !== 'function') {
+      return;
+    }
+
     const handleKeyDown = (event: KeyboardEvent) => {
       // Ignore if typing in an input
       const doc = win.document;

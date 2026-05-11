@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useShinyHunts } from "@/features/shiny-hunts/hooks/useShinyHunts";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useSettingsStore } from "@/store/settingsStore";
@@ -17,16 +17,22 @@ export default function DashboardPage() {
   const { lastHuntId } = useSettingsStore();
   const router = useRouter();
 
-  useKeyboardShortcuts((delta) => {
-    const targetHuntId = lastHuntId || (hunts.length > 0 ? hunts[0].id : null);
+  const handleIncrement = useCallback((id: string, delta: number) => {
+    increment({ huntId: id, delta });
+  }, [increment]);
+
+  const handleShortcutIncrement = useCallback((delta: number) => {
+    const targetHuntId = lastHuntId || (hunts.length !== 0 ? hunts[0].id : null);
     if (!targetHuntId) return;
 
     const hunt = hunts.find(h => h.id === targetHuntId);
     if (!hunt || hunt.is_caught) return;
 
-    const finalDelta = delta > 0 ? hunt.encounter_increment : -1;
-    increment({ huntId: targetHuntId, delta: finalDelta });
-  });
+    const finalDelta = delta >= 1 ? hunt.encounter_increment : -1;
+    handleIncrement(targetHuntId, finalDelta);
+  }, [hunts, lastHuntId, handleIncrement]);
+
+  useKeyboardShortcuts(handleShortcutIncrement);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -70,11 +76,11 @@ export default function DashboardPage() {
             <ShinyHuntCard 
               key={hunt.id} 
               hunt={hunt} 
-              onIncrement={(id, delta) => increment({ huntId: id, delta })}
+              onIncrement={handleIncrement}
             />
           ))}
           
-          {caughtHunts.length > 0 && (
+          {caughtHunts.length !== 0 && (
             <div className={styles.caughtSection}>
               <h2>Recently Caught</h2>
               <div className={styles.grid}>

@@ -177,7 +177,7 @@ export default function SettingsPage() {
         )}
       </section>
 
-      {destinations.length > 0 && (
+      {destinations.length !== 0 && (
         <section className={styles.section}>
           <h2>Notification Destinations</h2>
           <div className={styles.destinations}>
