@@ -1,0 +1,48 @@
+.navbar {
+  border-bottom: 1px solid var(--card-border);
+  padding: 1rem 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-weight: 800;
+  font-size: 1.5rem;
+  text-decoration: none;
+  color: var(--accent);
+  letter-spacing: -0.5px;
+}
+
+.links {
+  list-style: none;
+  display: flex;
+  gap: 2rem;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+}
+
+.links a {
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.links a.active {
+  color: var(--accent);
+}
+
+.loginBtn {
+  background: var(--accent);
+  color: white !important;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+}

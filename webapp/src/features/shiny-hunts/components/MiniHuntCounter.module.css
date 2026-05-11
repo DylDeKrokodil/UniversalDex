@@ -1,0 +1,116 @@
+.container {
+  padding: 16px;
+  background: white;
+  color: #171717;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: sans-serif;
+  user-select: none;
+}
+
+:global(.dark) .container {
+  background: #0a0a0a;
+  color: #ededed;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.sprite {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.name {
+  font-weight: 800;
+  text-transform: capitalize;
+  font-size: 1rem;
+}
+
+.game {
+  font-size: 0.75rem;
+  color: #666;
+  font-weight: 600;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.counter {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.count {
+  font-size: 3.5rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.minusBtn {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  border: none;
+  background: #f0f0f0;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plusBtn {
+  flex: 1;
+  height: 60px;
+  border-radius: 16px;
+  border: none;
+  background: #ff0000;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 1.25rem;
+}
+
+.plusBtn:active, .minusBtn:active {
+  transform: scale(0.95);
+}
+
+.plusBtn:disabled, .minusBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+:global(.dark) .minusBtn {
+  background: #222;
+  color: #aaa;
+}
