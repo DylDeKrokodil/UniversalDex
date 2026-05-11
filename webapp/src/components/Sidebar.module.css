@@ -9,42 +9,91 @@
   display: flex;
   flex-direction: column;
   z-index: 100;
-  transition: background-color 0.2s, border-color 0.2s;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s, border-color 0.2s;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.sidebar.collapsed {
+  width: 80px;
 }
 
 .brand {
-  padding: 1.5rem 2rem;
+  padding: 1.5rem 1.5rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
   border-bottom: 1px solid var(--nav-hover);
+  min-height: 82px;
+}
+
+.collapsed .brand {
+  padding: 1.5rem;
+  justify-content: center;
+}
+
+.toggleBtn {
+  position: absolute;
+  right: -15px;
+  top: 70px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-secondary);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 101;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.toggleBtn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.1);
 }
 
 .brandImg {
   width: 32px;
   height: 32px;
   border-radius: 8px;
+  flex-shrink: 0;
 }
 
 .logo {
   font-weight: 800;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   text-decoration: none;
   color: var(--accent);
   letter-spacing: -0.5px;
+  white-space: nowrap;
 }
 
 .nav {
   flex: 1;
-  padding: 1.5rem 1rem;
+  padding: 1.5rem 0.75rem;
+}
+
+.collapsed .nav {
+  padding: 1.5rem 0.5rem;
 }
 
 .section {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .sectionTitle {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   text-transform: uppercase;
   font-weight: 800;
   color: var(--text-secondary);
@@ -66,6 +115,11 @@
   transition: all 0.2s;
 }
 
+.collapsed .link {
+  justify-content: center;
+  padding: 0.75rem;
+}
+
 .dark .link {
   color: var(--text-secondary);
 }
@@ -81,14 +135,25 @@
 }
 
 .footer {
-  padding: 1.5rem;
+  padding: 1rem;
   border-top: 1px solid var(--sidebar-border);
+}
+
+.collapsed .footer {
+  padding: 1rem 0.5rem;
 }
 
 .userBox {
   background: var(--user-box-bg);
-  padding: 1rem;
+  padding: 0.75rem;
   border-radius: 10px;
+}
+
+.collapsed .userBox {
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .userEmail {
@@ -104,6 +169,7 @@
 .logoutBtn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   background: none;
   border: 1px solid var(--input-border);
@@ -115,3 +181,9 @@
   font-size: 0.85rem;
   cursor: pointer;
 }
+
+.collapsed .logoutBtn {
+  padding: 0.5rem;
+  border: none;
+}
+

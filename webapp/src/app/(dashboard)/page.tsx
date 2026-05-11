@@ -2,24 +2,28 @@
 
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useRouter } from "next/navigation";
-import { useEffect, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useShinyHunts } from "@/features/shiny-hunts/hooks/useShinyHunts";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useSettingsStore } from "@/store/settingsStore";
 import ShinyHuntCard from "@/features/shiny-hunts/components/ShinyHuntCard";
+import NewHuntModal from "@/features/shiny-hunts/components/NewHuntModal";
 import styles from "./Dashboard.module.css";
-
-import Link from "next/link";
 
 export default function DashboardPage() {
   const { user, isLoading: authLoading } = useAuth();
-  const { hunts, isLoading: huntsLoading, increment } = useShinyHunts();
+  const { hunts, isLoading: huntsLoading, increment, complete } = useShinyHunts();
   const { lastHuntId } = useSettingsStore();
   const router = useRouter();
+  const [isNewHuntModalOpen, setIsNewHuntModalOpen] = useState(false);
 
   const handleIncrement = useCallback((id: string, delta: number) => {
     increment({ huntId: id, delta });
   }, [increment]);
+
+  const handleComplete = useCallback((id: string, completion: any) => {
+    complete({ huntId: id, completion });
+  }, [complete]);
 
   const handleShortcutIncrement = useCallback((delta: number) => {
     const targetHuntId = lastHuntId || (hunts.length !== 0 ? hunts[0].id : null);
@@ -62,13 +66,13 @@ export default function DashboardPage() {
           <h1>Your Hunt Deck</h1>
           <p>Manage your active shiny hunts across all games.</p>
         </div>
-        <Link href="/new" className={styles.addBtn}>New Hunt</Link>
+        <button onClick={() => setIsNewHuntModalOpen(true)} className={styles.addBtn}>New Hunt</button>
       </header>
 
       {hunts.length === 0 ? (
         <div className={styles.empty}>
           <p>You don't have any active hunts yet.</p>
-          <Link href="/new" className={styles.addBtn}>Start Your First Hunt</Link>
+          <button onClick={() => setIsNewHuntModalOpen(true)} className={styles.addBtn}>Start Your First Hunt</button>
         </div>
       ) : (
         <section className={styles.grid}>
@@ -77,6 +81,7 @@ export default function DashboardPage() {
               key={hunt.id} 
               hunt={hunt} 
               onIncrement={handleIncrement}
+              onComplete={handleComplete}
             />
           ))}
           
@@ -89,6 +94,7 @@ export default function DashboardPage() {
                     key={hunt.id} 
                     hunt={hunt} 
                     onIncrement={() => {}} 
+                    onComplete={() => {}}
                   />
                 ))}
               </div>
@@ -96,6 +102,12 @@ export default function DashboardPage() {
           )}
         </section>
       )}
+
+      <NewHuntModal 
+        isOpen={isNewHuntModalOpen} 
+        onClose={() => setIsNewHuntModalOpen(false)}
+        onSuccess={() => {}}
+      />
     </main>
   );
 }

@@ -1,21 +1,33 @@
-import { ShinyHunt } from "../types";
+import { ShinyHunt, ShinyHuntCompletion, BALL_DISPLAY_NAMES } from "../types";
 import styles from "./ShinyHuntCard.module.css";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, CheckCircle } from "lucide-react";
 import { createRoot } from "react-dom/client";
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 import { useSettingsStore } from "@/store/settingsStore";
 import MiniHuntCounter from "./MiniHuntCounter";
+import CompletionModal from "./CompletionModal";
 
 interface Props {
   hunt: ShinyHunt;
   onIncrement: (id: string, delta: number) => void;
+  onComplete: (id: string, completion: ShinyHuntCompletion) => void;
 }
 
-export default function ShinyHuntCard({ hunt, onIncrement }: Props) {
+export default function ShinyHuntCard({ hunt, onIncrement, onComplete }: Props) {
+  const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
   const progress = Math.min((hunt.encounters / hunt.odds_denominator) * 100, 100);
-  const spriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${hunt.pokemon_id}.png`;
+  const spriteUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/sprites/pokemon/other/home/shiny/${hunt.pokemon_id}.png`;
   const { setLastHuntId } = useSettingsStore();
   
+  const caughtDate = hunt.caught_at ? new Date(hunt.caught_at).toLocaleDateString(undefined, { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  }) : null;
+
+  const ballName = hunt.completion_ball ? BALL_DISPLAY_NAMES[hunt.completion_ball] : null;
+  const statusLabel = hunt.completion_is_failed ? "Failed" : "Caught";
+
   // Use refs to handle the pop-out window and its React root
   const huntRef = useRef(hunt);
   const pipWindowRef = useRef<any>(null);
@@ -178,15 +190,34 @@ export default function ShinyHuntCard({ hunt, onIncrement }: Props) {
       <div className={styles.progressBar}>
         <div 
           className={styles.progressFill} 
-          style={{ width: `${progress}%`, backgroundColor: hunt.is_caught ? "#4ade80" : "var(--accent)" }}
+          style={{ width: `${progress}%`, backgroundColor: hunt.is_caught ? (hunt.completion_is_failed ? "#ef4444" : "#4ade80") : "var(--accent)" }}
         />
       </div>
+
+      {hunt.is_caught && (
+        <div className={styles.caughtSummary}>
+          <p>
+            {statusLabel} {hunt.completion_nickname || hunt.pokemon_name} 
+            {ballName && ` in a ${ballName}`}
+            {caughtDate && ` on ${caughtDate}`}
+          </p>
+        </div>
+      )}
 
       <div className={styles.footer}>
         <div className={styles.odds}>
           <span>Odds: 1/{hunt.odds_denominator.toLocaleString()}</span>
         </div>
         <div className={styles.actions}>
+          {!hunt.is_caught && (
+            <button 
+              onClick={() => setIsCompletionModalOpen(true)}
+              className={styles.completeBtn}
+              title="Mark as caught"
+            >
+              <CheckCircle size={20} />
+            </button>
+          )}
           <button 
             onClick={() => handleIncrement(hunt.id, -1)}
             disabled={hunt.encounters === 0 || hunt.is_caught}
@@ -203,6 +234,16 @@ export default function ShinyHuntCard({ hunt, onIncrement }: Props) {
           </button>
         </div>
       </div>
+
+      <CompletionModal 
+        hunt={hunt}
+        isOpen={isCompletionModalOpen}
+        onClose={() => setIsCompletionModalOpen(false)}
+        onConfirm={(completion) => {
+          onComplete(hunt.id, completion);
+          setIsCompletionModalOpen(false);
+        }}
+      />
     </div>
   );
 }

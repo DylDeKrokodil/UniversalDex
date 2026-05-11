@@ -26,7 +26,7 @@
   font-size: 0.95rem;
 }
 
-.accountCard, .discordCard, .destCard, .themeCard {
+.accountCard, .discordCard, .themeCard {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   padding: 1.5rem;
@@ -107,49 +107,6 @@
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
-}
-
-.destinations {
-  display: grid;
-  gap: 1rem;
-}
-
-.destCard {
-  flex-direction: column;
-  align-items: stretch;
-}
-
-.destHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.destHeader h3 {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.channel {
-  background: var(--nav-hover);
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  font-family: monospace;
-  font-size: 0.85rem;
-}
-
-.toggles {
-  display: flex;
-  gap: 1.5rem;
-}
-
-.toggles label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  font-weight: 600;
 }
 
 .shortcutGrid {

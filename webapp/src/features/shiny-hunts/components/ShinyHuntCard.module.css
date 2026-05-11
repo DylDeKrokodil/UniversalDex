@@ -1,53 +1,120 @@
 .card {
   background: var(--card-bg);
-  padding: 1.25rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  padding: 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
   border: 1px solid var(--card-border);
   margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
   margin-bottom: 1.5rem;
+  gap: 1rem;
 }
 
 .pokemonInfo {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .spriteContainer {
-  width: 56px;
-  height: 56px;
+  width: 110px;
+  height: 110px;
   background: var(--user-box-bg);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  position: relative;
 }
 
 .sprite {
-  width: 70px;
-  height: 70px;
+  width: 140px;
+  height: 140px;
   object-fit: contain;
+  z-index: 1;
 }
 
 .titleRow {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
 }
 
 .titleInfo h3 {
   margin: 0;
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: 1.25rem;
+  font-weight: 800;
   text-transform: capitalize;
+}
+
+.gameTag {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: var(--nav-hover);
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  text-transform: capitalize;
+  display: inline-block;
+}
+
+.encounters {
+  text-align: center;
+}
+
+.count {
+  display: block;
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--foreground);
+}
+
+.label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.progressBar {
+  height: 10px;
+  background: var(--nav-hover);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.progressFill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.caughtSummary {
+  margin-bottom: 1.25rem;
+  padding: 0.75rem;
+  background: var(--nav-hover);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.caughtSummary p {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  line-height: 1.4;
 }
 
 .popOutBtn {
@@ -68,84 +135,70 @@
   color: var(--accent);
 }
 
-.gameTag {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  background: var(--nav-hover);
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  text-transform: capitalize;
-}
-
-.encounters {
-  text-align: right;
-}
-
-.count {
-  display: block;
-  font-size: 1.5rem;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  font-weight: 700;
-  color: var(--text-secondary);
-}
-
-.progressBar {
-  height: 8px;
-  background: var(--nav-hover);
-  border-radius: 4px;
-  overflow: hidden;
-  margin-bottom: 1rem;
-}
-
-.progressFill {
-  height: 100%;
-  transition: width 0.3s ease;
-}
-
 .footer {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 1.25rem;
   align-items: center;
 }
 
 .odds {
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 700;
   color: var(--text-secondary);
 }
 
 .actions {
   display: flex;
   gap: 0.75rem;
+  width: 100%;
+  justify-content: center;
 }
 
 .minorBtn {
   background: var(--nav-hover);
   border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   font-weight: 700;
   cursor: pointer;
   color: var(--foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .majorBtn {
   background: var(--accent);
   color: white;
   border: none;
-  padding: 0 1rem;
-  height: 32px;
-  border-radius: 8px;
-  font-weight: 700;
+  padding: 0 1.5rem;
+  height: 40px;
+  border-radius: 10px;
+  font-weight: 800;
   cursor: pointer;
+  flex: 1;
+  max-width: 120px;
+}
+
+.completeBtn {
+  background: #4ade8022;
+  color: #4ade80;
+  border: 1px solid #4ade8044;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.completeBtn:hover {
+  background: #4ade80;
+  color: white;
 }
 
 .majorBtn:disabled, .minorBtn:disabled {

@@ -4,7 +4,7 @@ import { useAuth } from "@/features/auth/AuthProvider";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { DiscordAccountLink, DiscordNotificationDestination } from "@/features/settings/types";
+import { DiscordAccountLink } from "@/features/settings/types";
 import { useThemeStore } from "@/store/themeStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { Sun, Moon, Monitor, Keyboard } from "lucide-react";
@@ -16,7 +16,6 @@ export default function SettingsPage() {
   const { shortcuts, setShortcuts } = useSettingsStore();
   const router = useRouter();
   const [discordLink, setDiscordLink] = useState<DiscordAccountLink | null>(null);
-  const [destinations, setDestinations] = useState<DiscordNotificationDestination[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [activeShortcutField, setActiveShortcutField] = useState<'increment' | 'decrement' | null>(null);
@@ -54,13 +53,9 @@ export default function SettingsPage() {
   const fetchDiscordSettings = async () => {
     setIsLoading(true);
     
-    const [linkRes, destRes] = await Promise.all([
-      supabase.from("discord_account_links").select("*").single(),
-      supabase.from("discord_notification_destinations").select("*")
-    ]);
+    const { data, error } = await supabase.from("discord_account_links").select("*").single();
 
-    if (linkRes.data) setDiscordLink(linkRes.data);
-    if (destRes.data) setDestinations(destRes.data);
+    if (data) setDiscordLink(data);
     
     setIsLoading(false);
   };
@@ -176,32 +171,6 @@ export default function SettingsPage() {
           <button className={styles.connectBtn}>Connect Discord</button>
         )}
       </section>
-
-      {destinations.length !== 0 && (
-        <section className={styles.section}>
-          <h2>Notification Destinations</h2>
-          <div className={styles.destinations}>
-            {destinations.map(dest => (
-              <div key={dest.id} className={styles.destCard}>
-                <div className={styles.destHeader}>
-                  <h3>{dest.guild_name || "Unknown Server"}</h3>
-                  <span className={styles.channel}>#{dest.discord_channel_id || "no-channel"}</span>
-                </div>
-                <div className={styles.toggles}>
-                  <label>
-                    <input type="checkbox" checked={dest.is_milestone_enabled} readOnly />
-                    Milestones
-                  </label>
-                  <label>
-                    <input type="checkbox" checked={dest.is_catch_enabled} readOnly />
-                    Catches
-                  </label>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
     </main>
   );
 }

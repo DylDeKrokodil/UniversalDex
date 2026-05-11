@@ -1,0 +1,295 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: modalScaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalScaleUp {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--card-bg);
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  transition: all 0.2s;
+}
+
+.closeBtn:hover {
+  background: var(--nav-hover);
+  color: var(--foreground);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+.scrollArea {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.section {
+  margin-bottom: 2.5rem;
+}
+
+.section h3 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+  margin-bottom: 1.25rem;
+  font-weight: 800;
+}
+
+.field {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.field label {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.searchWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 1rem;
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+.field input,
+.field select {
+  background: var(--nav-hover);
+  border: 1px solid var(--card-border);
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  color: var(--foreground);
+  font-size: 1rem;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+
+.searchWrapper input {
+  padding-left: 2.75rem;
+}
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.searching {
+  font-size: 0.85rem;
+  color: var(--accent);
+  margin-top: 0.5rem;
+  font-weight: 600;
+}
+
+.results {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  margin-top: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.resultItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--foreground);
+  text-align: left;
+  transition: background 0.2s;
+}
+
+.resultItem:hover {
+  background: var(--nav-hover);
+}
+
+.resultItem img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+}
+
+.selectedPokemon {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--nav-hover);
+  border: 1px solid var(--accent);
+  color: var(--foreground);
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  margin-top: 0.5rem;
+}
+
+.selectedPokemon img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
+.selectedPokemon span {
+  font-weight: 800;
+  text-transform: capitalize;
+  color: var(--accent);
+}
+
+.gridFields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.timeFields {
+  display: flex;
+  gap: 1rem;
+}
+
+.timeInput {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.timeInput span {
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.checkboxField {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.checkboxField input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+}
+
+.checkboxField label {
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.oddsPreview {
+  background: var(--nav-hover);
+  padding: 1rem;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.oddsPreview p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.oddsPreview strong {
+  color: var(--accent);
+  font-size: 1.1rem;
+}
+
+.footer {
+  padding: 1.5rem;
+  border-top: 1px solid var(--card-border);
+  display: flex;
+  gap: 1rem;
+  background: var(--card-bg);
+}
+
+.cancelBtn {
+  flex: 1;
+  background: var(--nav-hover);
+  border: none;
+  padding: 0.85rem;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--foreground);
+}
+
+.submitBtn {
+  flex: 2;
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 0.85rem;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

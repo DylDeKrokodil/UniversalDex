@@ -24,12 +24,11 @@ export default function MiniHuntCounter({ hunt, onIncrement, onClose, targetWind
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <img 
-          src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${hunt.pokemon_id}.png`} 
-          alt="" 
+        <img
+          src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/sprites/pokemon/other/home/shiny/${hunt.pokemon_id}.png`}
+          alt=""
           className={styles.sprite}
-        />
-        <div className={styles.info}>
+        />        <div className={styles.info}>
           <span className={styles.name}>{hunt.pokemon_name}</span>
           <span className={styles.game}>{hunt.game}</span>
         </div>

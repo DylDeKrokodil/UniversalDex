@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { Users } from "lucide-react";
 import styles from "./Login.module.css";
 
 export default function LoginPage() {
@@ -67,6 +68,20 @@ export default function LoginPage() {
             {isLoading ? "Signing in..." : "Sign In"}
           </button>
         </form>
+
+        <div className={styles.divider}>
+          <span>or</span>
+        </div>
+
+        <a 
+          href="https://discord.gg/QcTZ4sCGTr" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className={styles.discordLink}
+        >
+          <Users size={20} />
+          <span>Join our Discord Community</span>
+        </a>
       </div>
     </main>
   );

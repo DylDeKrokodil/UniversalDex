@@ -77,10 +77,33 @@ export function useShinyHunts() {
     },
   });
 
+  const completeMutation = useMutation({
+    mutationFn: async ({ huntId, completion }: { huntId: string; completion: any }) => {
+      const { error } = await supabase
+        .from("shiny_hunts")
+        .update({ 
+          is_caught: true,
+          caught_at: completion.caughtAt,
+          completion_nickname: completion.nickname,
+          completion_ball: completion.ball,
+          completion_encounters: completion.encounters,
+          completion_elapsed_time: completion.elapsedTime,
+          completion_is_failed: completion.isFailed
+        })
+        .eq("id", huntId);
+
+      if (error) throw error;
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["shiny-hunts"] });
+    },
+  });
+
   return {
     hunts: huntsQuery.data ?? [],
     isLoading: huntsQuery.isLoading,
     error: huntsQuery.error,
     increment: incrementMutation.mutate,
+    complete: completeMutation.mutate,
   };
 }
