@@ -4,6 +4,7 @@ import { ShinyHunt } from "../types";
 import styles from "./MiniHuntCounter.module.css";
 import { Plus, Minus, X } from "lucide-react";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import ShinySpriteImage from "./ShinySpriteImage";
 
 interface Props {
   hunt: ShinyHunt;
@@ -24,8 +25,9 @@ export default function MiniHuntCounter({ hunt, onIncrement, onClose, targetWind
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <img
-          src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/sprites/pokemon/other/home/shiny/${hunt.pokemon_id}.png`}
+        <ShinySpriteImage
+          pokemonId={hunt.pokemon_id}
+          gender={hunt.gender}
           alt=""
           className={styles.sprite}
         />        <div className={styles.info}>

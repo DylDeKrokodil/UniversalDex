@@ -40,12 +40,4 @@ struct SupabaseConfiguration {
 
         return SupabaseConfiguration(url: url, anonKey: anonKey)
     }
-
-    static func publicStorageURL(bucket: String, path: String) -> URL? {
-        guard let config = load() else { return nil }
-        let baseURL = config.url.absoluteString.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        let cleanPath = path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        let fullURLString = "\(baseURL)/storage/v1/object/public/\(bucket)/\(cleanPath)"
-        return URL(string: fullURLString)
-    }
 }

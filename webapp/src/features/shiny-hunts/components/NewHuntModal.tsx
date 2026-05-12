@@ -7,11 +7,11 @@ import { METHODS, ShinyMethod, isMethodAvailable, calculateOdds } from "../data/
 import { ShinyGender, TrackingMetric } from "../types";
 import styles from "./NewHuntModal.module.css";
 import { X, Search } from "lucide-react";
+import ShinySpriteImage from "./ShinySpriteImage";
 
 interface PokemonResult {
   id: number;
   name: string;
-  sprite: string;
 }
 
 interface Props {
@@ -60,8 +60,7 @@ export default function NewHuntModal({ isOpen, onClose, onSuccess }: Props) {
           const id = p.url.split('/').filter(Boolean).pop();
           return {
             id: parseInt(id),
-            name: p.name.replace(/-/g, ' '),
-            sprite: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/sprites/pokemon/other/home/shiny/${id}.png`
+            name: p.name.replace(/-/g, ' ')
           };
         }));
         
@@ -174,7 +173,11 @@ export default function NewHuntModal({ isOpen, onClose, onSuccess }: Props) {
                         onClick={() => selectPokemon(p)}
                         className={styles.resultItem}
                       >
-                        <img src={p.sprite} alt="" />
+                        <ShinySpriteImage
+                          pokemonId={p.id}
+                          gender={selectedGender}
+                          alt=""
+                        />
                         <span>{p.name}</span>
                       </button>
                     ))}
@@ -182,7 +185,11 @@ export default function NewHuntModal({ isOpen, onClose, onSuccess }: Props) {
                 )}
                 {selectedPokemon && !pokemonResults.length && pokemonSearch === selectedPokemon.name && (
                   <div className={styles.selectedPokemon}>
-                    <img src={selectedPokemon.sprite} alt="" />
+                    <ShinySpriteImage
+                      pokemonId={selectedPokemon.id}
+                      gender={selectedGender}
+                      alt=""
+                    />
                     <span>{selectedPokemon.name}</span>
                   </div>
                 )}

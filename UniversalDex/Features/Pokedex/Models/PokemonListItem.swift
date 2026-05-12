@@ -30,22 +30,15 @@ struct PokemonListItem: Identifiable, Hashable {
     }
 
     var artworkURLs: [URL] {
-        [
-            supabaseHomeShinyURL,
-            supabaseArtworkURL
-        ].compactMap { $0 }
+        [githubHomeShinyURL].compactMap { $0 }
     }
 
     var artworkNonShinyURLs: [URL] {
-        [supabaseArtworkURL].compactMap { $0 }
+        artworkURLs
     }
 
-    var supabaseHomeShinyURL: URL? {
-        SupabaseConfiguration.publicStorageURL(bucket: "images", path: "sprites/pokemon/other/home/shiny/\(id).png")
-    }
-
-    var supabaseArtworkURL: URL? {
-        SupabaseConfiguration.publicStorageURL(bucket: "images", path: "sprites/pokemon/other/official-artwork/shiny/\(id).png")
+    var githubHomeShinyURL: URL? {
+        PokeAPISpriteRepository.url(path: "sprites/pokemon/other/home/shiny/\(id).png")
     }
 }
 

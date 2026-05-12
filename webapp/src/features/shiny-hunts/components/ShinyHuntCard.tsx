@@ -6,6 +6,7 @@ import { useRef, useEffect, useCallback, useState } from "react";
 import { useSettingsStore } from "@/store/settingsStore";
 import MiniHuntCounter from "./MiniHuntCounter";
 import CompletionModal from "./CompletionModal";
+import ShinySpriteImage from "./ShinySpriteImage";
 
 interface Props {
   hunt: ShinyHunt;
@@ -16,7 +17,6 @@ interface Props {
 export default function ShinyHuntCard({ hunt, onIncrement, onComplete }: Props) {
   const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
   const progress = Math.min((hunt.encounters / hunt.odds_denominator) * 100, 100);
-  const spriteUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/sprites/pokemon/other/home/shiny/${hunt.pokemon_id}.png`;
   const { setLastHuntId } = useSettingsStore();
   
   const caughtDate = hunt.caught_at ? new Date(hunt.caught_at).toLocaleDateString(undefined, { 
@@ -165,7 +165,12 @@ export default function ShinyHuntCard({ hunt, onIncrement, onComplete }: Props) 
       <div className={styles.header}>
         <div className={styles.pokemonInfo}>
           <div className={styles.spriteContainer}>
-            <img src={spriteUrl} alt={hunt.pokemon_name} className={styles.sprite} />
+            <ShinySpriteImage
+              pokemonId={hunt.pokemon_id}
+              gender={hunt.gender}
+              alt={hunt.pokemon_name}
+              className={styles.sprite}
+            />
           </div>
           <div className={styles.titleInfo}>
             <div className={styles.titleRow}>

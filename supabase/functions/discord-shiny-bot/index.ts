@@ -674,13 +674,8 @@ function pokemonThumbnail(record: ShinyHuntRecord) {
   const isFemale = record.gender === "female";
   const path = isFemale ? `female/${spriteID}.png` : `${spriteID}.png`;
 
-  const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const storageUrl = supabaseUrl
-    ? `${supabaseUrl}/storage/v1/object/public/images/sprites/pokemon/other/home/shiny/${path}`
-    : undefined;
-
   return {
-    url: storageUrl,
+    url: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/shiny/${path}`,
   };
 }
 

@@ -15,22 +15,30 @@ struct ShinyPokemonArtworkView: View {
     var sourceURLs: [URL] = []
     
     @State private var isLoading = true
+    @State private var didFailToLoad = false
 
     var body: some View {
+        let usesWebSpriteLoader = !sourceURLs.isEmpty || animatedURL != nil
+
         ZStack {
-            if isLoading && (!sourceURLs.isEmpty || animatedURL != nil) {
+            if usesWebSpriteLoader && (isLoading || didFailToLoad) {
                 Image("PokemonEgg")
                     .resizable()
                     .scaledToFit()
             }
 
             if !sourceURLs.isEmpty {
-                SpriteFallbackWebView(sourceURLs: sourceURLs, isLoading: $isLoading)
+                SpriteFallbackWebView(
+                    sourceURLs: sourceURLs,
+                    isLoading: $isLoading,
+                    didFailToLoad: $didFailToLoad
+                )
                     .allowsHitTesting(false)
             } else if let animatedURL {
                 SpriteFallbackWebView(
                     sourceURLs: [animatedURL] + [url, fallbackURL].compactMap { $0 },
-                    isLoading: $isLoading
+                    isLoading: $isLoading,
+                    didFailToLoad: $didFailToLoad
                 )
                     .allowsHitTesting(false)
             } else {
@@ -43,13 +51,17 @@ struct ShinyPokemonArtworkView: View {
 private struct SpriteFallbackWebView: UIViewRepresentable {
     let sourceURLs: [URL]
     @Binding var isLoading: Bool
+    @Binding var didFailToLoad: Bool
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(isLoading: $isLoading)
+        Coordinator(isLoading: $isLoading, didFailToLoad: $didFailToLoad)
     }
 
     func makeUIView(context: Context) -> WKWebView {
-        let webView = WKWebView()
+        let configuration = WKWebViewConfiguration()
+        configuration.userContentController.add(context.coordinator, name: "spriteStatus")
+
+        let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
         webView.isOpaque = false
         webView.backgroundColor = .clear
@@ -66,7 +78,13 @@ private struct SpriteFallbackWebView: UIViewRepresentable {
         }
 
         context.coordinator.loadedURLs = sourceURLs
+        isLoading = true
+        didFailToLoad = false
         webView.loadHTMLString(html(for: sourceURLs), baseURL: nil)
+    }
+
+    static func dismantleUIView(_ webView: WKWebView, coordinator: Coordinator) {
+        webView.configuration.userContentController.removeScriptMessageHandler(forName: "spriteStatus")
     }
 
     private func html(for urls: [URL]) -> String {
@@ -100,15 +118,24 @@ private struct SpriteFallbackWebView: UIViewRepresentable {
         </style>
         </head>
         <body>
-            <img id="pokemon-sprite" alt="" onerror="loadNextSprite();">
+            <img id="pokemon-sprite" alt="" onload="spriteDidLoad();" onerror="loadNextSprite();">
             <script>
             const sources = [\(sources)];
             const currentImage = document.getElementById('pokemon-sprite');
             let sourceIndex = 0;
 
+            function postStatus(status) {
+                window.webkit.messageHandlers.spriteStatus.postMessage(status);
+            }
+
+            function spriteDidLoad() {
+                postStatus('loaded');
+            }
+
             function loadNextSprite() {
                 if (sourceIndex >= sources.length) {
                     currentImage.style.display = 'none';
+                    postStatus('failed');
                     return;
                 }
 
@@ -123,16 +150,33 @@ private struct SpriteFallbackWebView: UIViewRepresentable {
         """
     }
 
-    final class Coordinator: NSObject, WKNavigationDelegate {
+    final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         @Binding var isLoading: Bool
+        @Binding var didFailToLoad: Bool
         var loadedURLs: [URL] = []
 
-        init(isLoading: Binding<Bool>) {
+        init(isLoading: Binding<Bool>, didFailToLoad: Binding<Bool>) {
             _isLoading = isLoading
+            _didFailToLoad = didFailToLoad
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            if loadedURLs.isEmpty {
+                isLoading = false
+                didFailToLoad = true
+            }
+        }
+
+        func userContentController(
+            _ userContentController: WKUserContentController,
+            didReceive message: WKScriptMessage
+        ) {
+            guard let status = message.body as? String else {
+                return
+            }
+
             isLoading = false
+            didFailToLoad = status != "loaded"
         }
     }
 }

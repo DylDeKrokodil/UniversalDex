@@ -29,3 +29,12 @@ struct PokeAPINamedResource: Codable, Hashable {
 struct PokeAPIResource: Codable, Hashable {
     let url: URL
 }
+
+enum PokeAPISpriteRepository {
+    private static let baseURL = "https://raw.githubusercontent.com/PokeAPI/sprites/master"
+
+    static func url(path: String) -> URL? {
+        let cleanPath = path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        return URL(string: "\(baseURL)/\(cleanPath)")
+    }
+}

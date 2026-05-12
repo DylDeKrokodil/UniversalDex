@@ -240,34 +240,10 @@ struct ShinyHunt: Identifiable, Codable, Hashable {
     }
 
     var artworkURLs: [URL] {
-        [supabaseShinyArtworkURL].compactMap { $0 }
+        githubHomeShinyURLs
     }
 
-    var supabaseShinyArtworkURL: URL? {
-        guard let artworkPokemonID else {
-            return nil
-        }
-
-        return SupabaseConfiguration.publicStorageURL(bucket: "images", path: "sprites/pokemon/other/official-artwork/shiny/\(artworkPokemonID).png")
-    }
-
-    var supabaseShowdownAnimatedShinyURLs: [URL] {
-        guard let artworkPokemonID else {
-            return []
-        }
-
-        let basePath = "sprites/pokemon/other/showdown/shiny/"
-        var paths = [basePath]
-        if gender == .female {
-            paths.insert("\(basePath)female/", at: 0)
-        }
-
-        return paths.compactMap { path in
-            SupabaseConfiguration.publicStorageURL(bucket: "images", path: "\(path)\(artworkPokemonID).gif")
-        }
-    }
-
-    var supabaseHomeShinyURLs: [URL] {
+    var githubHomeShinyURLs: [URL] {
         guard let artworkPokemonID else {
             return []
         }
@@ -279,34 +255,12 @@ struct ShinyHunt: Identifiable, Codable, Hashable {
         }
 
         return paths.compactMap { path in
-            SupabaseConfiguration.publicStorageURL(bucket: "images", path: "\(path)\(artworkPokemonID).png")
+            PokeAPISpriteRepository.url(path: "\(path)\(artworkPokemonID).png")
         }
-    }
-
-    var gameShinySpriteURLs: [URL] {
-        guard let artworkPokemonID else {
-            return []
-        }
-
-        return game.shinySpriteURLs(for: artworkPokemonID, gender: gender)
-    }
-
-    var gameAnimatedShinySpriteURLs: [URL] {
-        guard let artworkPokemonID else {
-            return []
-        }
-
-        return game.animatedShinySpriteURLs(for: artworkPokemonID, gender: gender)
     }
 
     var detailShinySpriteURLs: [URL] {
-        uniqueURLs(
-            gameAnimatedShinySpriteURLs +
-            gameShinySpriteURLs +
-            supabaseShowdownAnimatedShinyURLs +
-            supabaseHomeShinyURLs +
-            [supabaseShinyArtworkURL].compactMap { $0 }
-        )
+        uniqueURLs(githubHomeShinyURLs)
     }
 
     var latestCryURL: URL? {

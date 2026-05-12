@@ -20,9 +20,9 @@ struct PokemonImageView: View {
     }
 
     private var fallbackImage: some View {
-        Image(systemName: placeholderSystemName)
-            .font(.title2)
-            .foregroundStyle(.secondary)
+        Image("PokemonEgg")
+            .resizable()
+            .scaledToFit()
     }
 }
 
@@ -46,9 +46,9 @@ private struct RecursiveImageView: View {
                 if !remaining.isEmpty {
                     RecursiveImageView(urls: remaining, placeholderSystemName: placeholderSystemName)
                 } else {
-                    Image(systemName: placeholderSystemName)
-                        .font(.title2)
-                        .foregroundStyle(.secondary)
+                    Image("PokemonEgg")
+                        .resizable()
+                        .scaledToFit()
                 }
             @unknown default:
                 EmptyView()
