@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ShinyHunt, ShinyCaughtBall, BALL_DISPLAY_NAMES, ShinyHuntCompletion } from '../types';
 import styles from './CompletionModal.module.css';
 import { X } from 'lucide-react';
+import { formatDuration } from '../utils/format';
+import { totalElapsedSeconds, tracksEncounters, tracksTime } from '../utils/tracking';
 
 interface Props {
   hunt: ShinyHunt;
@@ -15,6 +17,21 @@ export default function CompletionModal({ hunt, isOpen, onClose, onConfirm }: Pr
   const [ball, setBall] = useState<ShinyCaughtBall>('poke');
   const [caughtAt, setCaughtAt] = useState(new Date().toISOString().split('T')[0]);
   const [isFailed, setIsFailed] = useState(false);
+  const [, setNowTick] = useState(0);
+
+  const shouldTrackEncounters = tracksEncounters(hunt);
+  const shouldTrackTime = tracksTime(hunt);
+  const elapsedSeconds = totalElapsedSeconds(hunt);
+
+  useEffect(() => {
+    if (!hunt.timer_started_at) return;
+
+    const interval = window.setInterval(() => {
+      setNowTick((current) => current + 1);
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, [hunt.timer_started_at]);
 
   if (!isOpen) return null;
 
@@ -24,7 +41,7 @@ export default function CompletionModal({ hunt, isOpen, onClose, onConfirm }: Pr
       nickname,
       ball,
       encounters: hunt.encounters,
-      elapsedTime: hunt.elapsed_time,
+      elapsedTime: elapsedSeconds,
       caughtAt: new Date(caughtAt).toISOString(),
       isFailed
     });
@@ -70,10 +87,18 @@ export default function CompletionModal({ hunt, isOpen, onClose, onConfirm }: Pr
           <div className={styles.section}>
             <h3>Result</h3>
             <div className={styles.statsRow}>
-              <div className={styles.stat}>
-                <span className={styles.statLabel}>Encounters</span>
-                <span className={styles.statValue}>{hunt.encounters.toLocaleString()}</span>
-              </div>
+              {shouldTrackEncounters && (
+                <div className={styles.stat}>
+                  <span className={styles.statLabel}>Encounters</span>
+                  <span className={styles.statValue}>{hunt.encounters.toLocaleString()}</span>
+                </div>
+              )}
+              {shouldTrackTime && (
+                <div className={styles.stat}>
+                  <span className={styles.statLabel}>Time</span>
+                  <span className={styles.statValue}>{formatDuration(elapsedSeconds)}</span>
+                </div>
+              )}
               <div className={styles.stat}>
                 <span className={styles.statLabel}>Odds</span>
                 <span className={styles.statValue}>1/{hunt.odds_denominator.toLocaleString()}</span>

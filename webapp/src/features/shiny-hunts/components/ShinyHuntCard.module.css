@@ -68,8 +68,20 @@
   display: inline-block;
 }
 
-.encounters {
+.metrics {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.metric {
+  min-width: 120px;
   text-align: center;
+  background: var(--user-box-bg);
+  border-radius: 10px;
+  padding: 0.75rem;
 }
 
 .count {
@@ -150,6 +162,7 @@
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.75rem;
   width: 100%;
   justify-content: center;
@@ -201,7 +214,26 @@
   color: white;
 }
 
-.majorBtn:disabled, .minorBtn:disabled {
+.timerBtn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timerRunning {
+  background: #f97316;
+}
+
+.majorBtn:disabled, .minorBtn:disabled, .timerBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }

@@ -8,11 +8,12 @@ import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useSettingsStore } from "@/store/settingsStore";
 import ShinyHuntCard from "@/features/shiny-hunts/components/ShinyHuntCard";
 import NewHuntModal from "@/features/shiny-hunts/components/NewHuntModal";
+import { tracksEncounters } from "@/features/shiny-hunts/utils/tracking";
 import styles from "./Dashboard.module.css";
 
 export default function DashboardPage() {
   const { user, isLoading: authLoading } = useAuth();
-  const { hunts, isLoading: huntsLoading, increment, complete } = useShinyHunts();
+  const { hunts, isLoading: huntsLoading, increment, toggleTimer, complete } = useShinyHunts();
   const { lastHuntId } = useSettingsStore();
   const router = useRouter();
   const [isNewHuntModalOpen, setIsNewHuntModalOpen] = useState(false);
@@ -25,12 +26,16 @@ export default function DashboardPage() {
     complete({ huntId: id, completion });
   }, [complete]);
 
+  const handleToggleTimer = useCallback((id: string, shouldRun: boolean) => {
+    toggleTimer({ huntId: id, shouldRun });
+  }, [toggleTimer]);
+
   const handleShortcutIncrement = useCallback((delta: number) => {
     const targetHuntId = lastHuntId || (hunts.length !== 0 ? hunts[0].id : null);
     if (!targetHuntId) return;
 
     const hunt = hunts.find(h => h.id === targetHuntId);
-    if (!hunt || hunt.is_caught) return;
+    if (!hunt || hunt.is_caught || !tracksEncounters(hunt)) return;
 
     const finalDelta = delta >= 1 ? hunt.encounter_increment : -1;
     handleIncrement(targetHuntId, finalDelta);
@@ -81,6 +86,7 @@ export default function DashboardPage() {
               key={hunt.id} 
               hunt={hunt} 
               onIncrement={handleIncrement}
+              onToggleTimer={handleToggleTimer}
               onComplete={handleComplete}
             />
           ))}
@@ -94,6 +100,7 @@ export default function DashboardPage() {
                     key={hunt.id} 
                     hunt={hunt} 
                     onIncrement={() => {}} 
+                    onToggleTimer={() => {}}
                     onComplete={() => {}}
                   />
                 ))}

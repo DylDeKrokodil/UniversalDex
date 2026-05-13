@@ -1,22 +1,30 @@
 import { ShinyHunt, ShinyHuntCompletion, BALL_DISPLAY_NAMES } from "../types";
 import styles from "./ShinyHuntCard.module.css";
-import { ExternalLink, CheckCircle } from "lucide-react";
+import { ExternalLink, CheckCircle, Pause, Play } from "lucide-react";
 import { createRoot } from "react-dom/client";
 import { useRef, useEffect, useCallback, useState } from "react";
 import { useSettingsStore } from "@/store/settingsStore";
 import MiniHuntCounter from "./MiniHuntCounter";
 import CompletionModal from "./CompletionModal";
 import ShinySpriteImage from "./ShinySpriteImage";
+import { formatDuration } from "../utils/format";
+import { totalElapsedSeconds, tracksEncounters, tracksTime } from "../utils/tracking";
 
 interface Props {
   hunt: ShinyHunt;
   onIncrement: (id: string, delta: number) => void;
+  onToggleTimer: (id: string, shouldRun: boolean) => void;
   onComplete: (id: string, completion: ShinyHuntCompletion) => void;
 }
 
-export default function ShinyHuntCard({ hunt, onIncrement, onComplete }: Props) {
+export default function ShinyHuntCard({ hunt, onIncrement, onToggleTimer, onComplete }: Props) {
   const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
-  const progress = Math.min((hunt.encounters / hunt.odds_denominator) * 100, 100);
+  const [, setNowTick] = useState(0);
+  const shouldTrackEncounters = tracksEncounters(hunt);
+  const shouldTrackTime = tracksTime(hunt);
+  const isTimerRunning = Boolean(hunt.timer_started_at);
+  const elapsedSeconds = totalElapsedSeconds(hunt);
+  const progress = shouldTrackEncounters ? Math.min((hunt.encounters / hunt.odds_denominator) * 100, 100) : 0;
   const { setLastHuntId } = useSettingsStore();
   
   const caughtDate = hunt.caught_at ? new Date(hunt.caught_at).toLocaleDateString(undefined, { 
@@ -27,6 +35,16 @@ export default function ShinyHuntCard({ hunt, onIncrement, onComplete }: Props) 
 
   const ballName = hunt.completion_ball ? BALL_DISPLAY_NAMES[hunt.completion_ball] : null;
   const statusLabel = hunt.completion_is_failed ? "Failed" : "Caught";
+
+  useEffect(() => {
+    if (!isTimerRunning) return;
+
+    const interval = window.setInterval(() => {
+      setNowTick((current) => current + 1);
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, [isTimerRunning]);
 
   // Use refs to handle the pop-out window and its React root
   const huntRef = useRef(hunt);
@@ -41,7 +59,7 @@ export default function ShinyHuntCard({ hunt, onIncrement, onComplete }: Props) 
   useEffect(() => {
     huntRef.current = hunt;
     // Immediately re-render the pop-out if it's open
-    if (pipRootRef.current && pipWindowRef.current && !pipWindowRef.current.closed) {
+    if (pipRootRef.current && pipWindowRef.current && !pipWindowRef.current.closed && shouldTrackEncounters) {
       pipRootRef.current.render(
         <MiniHuntCounter 
           hunt={hunt} 
@@ -51,7 +69,7 @@ export default function ShinyHuntCard({ hunt, onIncrement, onComplete }: Props) 
         />
       );
     }
-  }, [hunt, handleIncrement]);
+  }, [hunt, handleIncrement, shouldTrackEncounters]);
 
   // Clean up pop-out window if the component unmounts
   useEffect(() => {
@@ -63,6 +81,10 @@ export default function ShinyHuntCard({ hunt, onIncrement, onComplete }: Props) 
   }, []);
 
   const handlePopOut = async () => {
+    if (!shouldTrackEncounters) {
+      return;
+    }
+
     if (pipWindowRef.current && !pipWindowRef.current.closed) {
       pipWindowRef.current.focus();
       return;
@@ -160,6 +182,10 @@ export default function ShinyHuntCard({ hunt, onIncrement, onComplete }: Props) 
     }
   };
 
+  const handleToggleTimer = () => {
+    onToggleTimer(hunt.id, !isTimerRunning);
+  };
+
   return (
     <div className={styles.card}>
       <div className={styles.header}>
@@ -175,29 +201,43 @@ export default function ShinyHuntCard({ hunt, onIncrement, onComplete }: Props) 
           <div className={styles.titleInfo}>
             <div className={styles.titleRow}>
               <h3>{hunt.hunt_name || hunt.pokemon_name}</h3>
-              <button 
-                onClick={handlePopOut} 
-                className={styles.popOutBtn}
-                title="Pop out counter"
-              >
-                <ExternalLink size={14} />
-              </button>
+              {shouldTrackEncounters && (
+                <button 
+                  onClick={handlePopOut} 
+                  className={styles.popOutBtn}
+                  title="Pop out counter"
+                >
+                  <ExternalLink size={14} />
+                </button>
+              )}
             </div>
             <span className={styles.gameTag}>{hunt.game}</span>
           </div>
         </div>
-        <div className={styles.encounters}>
-          <span className={styles.count}>{hunt.encounters.toLocaleString()}</span>
-          <span className={styles.label}>Encounters</span>
+        <div className={styles.metrics}>
+          {shouldTrackEncounters && (
+            <div className={styles.metric}>
+              <span className={styles.count}>{hunt.encounters.toLocaleString()}</span>
+              <span className={styles.label}>Encounters</span>
+            </div>
+          )}
+          {shouldTrackTime && (
+            <div className={styles.metric}>
+              <span className={styles.count}>{formatDuration(elapsedSeconds)}</span>
+              <span className={styles.label}>{isTimerRunning ? "Time Running" : "Time"}</span>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className={styles.progressBar}>
-        <div 
-          className={styles.progressFill} 
-          style={{ width: `${progress}%`, backgroundColor: hunt.is_caught ? (hunt.completion_is_failed ? "#ef4444" : "#4ade80") : "var(--accent)" }}
-        />
-      </div>
+      {shouldTrackEncounters && (
+        <div className={styles.progressBar}>
+          <div 
+            className={styles.progressFill} 
+            style={{ width: `${progress}%`, backgroundColor: hunt.is_caught ? (hunt.completion_is_failed ? "#ef4444" : "#4ade80") : "var(--accent)" }}
+          />
+        </div>
+      )}
 
       {hunt.is_caught && (
         <div className={styles.caughtSummary}>
@@ -223,20 +263,34 @@ export default function ShinyHuntCard({ hunt, onIncrement, onComplete }: Props) 
               <CheckCircle size={20} />
             </button>
           )}
-          <button 
-            onClick={() => handleIncrement(hunt.id, -1)}
-            disabled={hunt.encounters === 0 || hunt.is_caught}
-            className={styles.minorBtn}
-          >
-            -
-          </button>
-          <button 
-            onClick={() => handleIncrement(hunt.id, hunt.encounter_increment)}
-            disabled={hunt.is_caught}
-            className={styles.majorBtn}
-          >
-            +{hunt.encounter_increment}
-          </button>
+          {shouldTrackTime && !hunt.is_caught && (
+            <button
+              onClick={handleToggleTimer}
+              className={`${styles.timerBtn} ${isTimerRunning ? styles.timerRunning : ""}`}
+              aria-label={isTimerRunning ? "Stop time" : "Start time"}
+              title={isTimerRunning ? "Stop time" : "Start time"}
+            >
+              {isTimerRunning ? <Pause size={18} /> : <Play size={18} />}
+            </button>
+          )}
+          {shouldTrackEncounters && (
+            <>
+              <button 
+                onClick={() => handleIncrement(hunt.id, -1)}
+                disabled={hunt.encounters === 0 || hunt.is_caught}
+                className={styles.minorBtn}
+              >
+                -
+              </button>
+              <button 
+                onClick={() => handleIncrement(hunt.id, hunt.encounter_increment)}
+                disabled={hunt.is_caught}
+                className={styles.majorBtn}
+              >
+                +{hunt.encounter_increment}
+              </button>
+            </>
+          )}
         </div>
       </div>
 
