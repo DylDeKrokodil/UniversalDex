@@ -7,6 +7,8 @@ on conflict (id) do update
 set public = true;
 
 -- 2. Allow public (anonymous) access to read files in the 'images' bucket
+drop policy if exists "Public Access to Images" on storage.objects;
+
 create policy "Public Access to Images"
 on storage.objects for select
-using ( bucket_id = 'images' );
+using (bucket_id = 'images');

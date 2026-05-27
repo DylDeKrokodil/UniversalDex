@@ -38,6 +38,7 @@ export const BALL_DISPLAY_NAMES: Record<ShinyCaughtBall, string> = {
 export interface ShinyHunt {
   id: string;
   user_id: string;
+  overlay_token: string;
   pokemon_id: number | null;
   pokemon_form_id: number | null;
   pokemon_name: string;

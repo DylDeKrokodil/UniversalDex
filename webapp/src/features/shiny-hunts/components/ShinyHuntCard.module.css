@@ -229,11 +229,31 @@
   justify-content: center;
 }
 
+.overlayLinkBtn {
+  background: var(--nav-hover);
+  color: var(--foreground);
+  border: 1px solid var(--card-border);
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.overlayLinkBtn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 .timerRunning {
   background: #f97316;
 }
 
-.majorBtn:disabled, .minorBtn:disabled, .timerBtn:disabled {
+.majorBtn:disabled, .minorBtn:disabled, .timerBtn:disabled, .overlayLinkBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }

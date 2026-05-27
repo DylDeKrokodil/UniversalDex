@@ -1,11 +1,12 @@
 import { ShinyHunt, ShinyHuntCompletion, BALL_DISPLAY_NAMES } from "../types";
 import styles from "./ShinyHuntCard.module.css";
-import { ExternalLink, CheckCircle, Pause, Play } from "lucide-react";
+import { ExternalLink, CheckCircle, Pause, Play, SlidersHorizontal } from "lucide-react";
 import { createRoot } from "react-dom/client";
 import { useRef, useEffect, useCallback, useState } from "react";
 import { useSettingsStore } from "@/store/settingsStore";
 import MiniHuntCounter from "./MiniHuntCounter";
 import CompletionModal from "./CompletionModal";
+import OverlayLinkModal from "./OverlayLinkModal";
 import ShinySpriteImage from "./ShinySpriteImage";
 import { formatDuration } from "../utils/format";
 import { totalElapsedSeconds, tracksEncounters, tracksTime } from "../utils/tracking";
@@ -19,6 +20,7 @@ interface Props {
 
 export default function ShinyHuntCard({ hunt, onIncrement, onToggleTimer, onComplete }: Props) {
   const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
+  const [isOverlayLinkModalOpen, setIsOverlayLinkModalOpen] = useState(false);
   const [, setNowTick] = useState(0);
   const shouldTrackEncounters = tracksEncounters(hunt);
   const shouldTrackTime = tracksTime(hunt);
@@ -94,12 +96,12 @@ export default function ShinyHuntCard({ hunt, onIncrement, onToggleTimer, onComp
       if ('documentPictureInPicture' in window) {
         // @ts-ignore - Document PiP API is still experimental in TS definitions
         pipWindowRef.current = await window.documentPictureInPicture.requestWindow({
-          width: 320,
-          height: 320,
+          width: 240,
+          height: 280,
         });
       } else {
         // Fallback for Firefox/Safari/Other browsers
-        pipWindowRef.current = window.open("", "_blank", "width=320,height=350,menubar=no,toolbar=no,location=no,status=no,resizable=yes");
+        pipWindowRef.current = window.open("", "_blank", "width=240,height=300,menubar=no,toolbar=no,location=no,status=no,resizable=yes");
         
         if (!pipWindowRef.current) {
           alert("Pop-out window was blocked! Please allow pop-ups for this site to use the mini-counter.");
@@ -263,6 +265,16 @@ export default function ShinyHuntCard({ hunt, onIncrement, onToggleTimer, onComp
               <CheckCircle size={20} />
             </button>
           )}
+          {shouldTrackEncounters && hunt.overlay_token && (
+            <button
+              onClick={() => setIsOverlayLinkModalOpen(true)}
+              className={styles.overlayLinkBtn}
+              aria-label="Customize OBS overlay"
+              title="Customize OBS overlay"
+            >
+              <SlidersHorizontal size={18} />
+            </button>
+          )}
           {shouldTrackTime && !hunt.is_caught && (
             <button
               onClick={handleToggleTimer}
@@ -302,6 +314,11 @@ export default function ShinyHuntCard({ hunt, onIncrement, onToggleTimer, onComp
           onComplete(hunt.id, completion);
           setIsCompletionModalOpen(false);
         }}
+      />
+      <OverlayLinkModal
+        hunt={hunt}
+        isOpen={isOverlayLinkModalOpen}
+        onClose={() => setIsOverlayLinkModalOpen(false)}
       />
     </div>
   );

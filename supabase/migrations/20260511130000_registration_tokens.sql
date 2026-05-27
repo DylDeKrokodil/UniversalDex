@@ -1,5 +1,5 @@
 -- Table for storing registration tokens
-create table public.registration_tokens (
+create table if not exists public.registration_tokens (
     token text primary key,
     created_at timestamptz default now(),
     used_at timestamptz,
@@ -59,6 +59,8 @@ end;
 $$ language plpgsql security definer;
 
 -- Bind trigger to auth.users table
+drop trigger if exists on_auth_user_created_token_check on auth.users;
+
 create trigger on_auth_user_created_token_check
     after insert on auth.users
     for each row execute procedure public.handle_registration_token();
@@ -69,4 +71,5 @@ values
 ('H7W-K9Q-X2P'), ('B4V-R8M-L5S'), ('Z3N-G6T-D9J'), ('P1X-Y4K-W7Q'), ('C9M-S2L-V5H'),
 ('F8R-N3B-J6T'), ('G2K-Q9W-P4X'), ('D5H-V7M-S8L'), ('W1Q-X4P-Y9K'), ('J6T-B3N-G8R'),
 ('L5S-V2M-C9H'), ('K4Y-W1Q-X7P'), ('M8L-D5H-V2S'), ('N3B-F8R-J6T'), ('Q9W-G2K-P4X'),
-('R8M-B4V-L5S'), ('S7L-H2P-V9M'), ('T6G-J3N-B8R'), ('V5H-C9M-S2L'), ('X4P-K1Y-W9Q');
+('R8M-B4V-L5S'), ('S7L-H2P-V9M'), ('T6G-J3N-B8R'), ('V5H-C9M-S2L'), ('X4P-K1Y-W9Q')
+on conflict (token) do nothing;
